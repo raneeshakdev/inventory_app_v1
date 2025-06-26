@@ -6,8 +6,8 @@ import com.svym.inventory.service.dto.EventDetailDTO;
 
 public interface EventDetailService {
     EventDetailDTO createEvent(EventDetailDTO dto);
-    EventDetailDTO getEventById(Long id);
     List<EventDetailDTO> getAllEvents();
+    EventDetailDTO getEventById(Long id);
     EventDetailDTO updateEvent(Long id, EventDetailDTO dto);
     void deleteEvent(Long id);
 }
