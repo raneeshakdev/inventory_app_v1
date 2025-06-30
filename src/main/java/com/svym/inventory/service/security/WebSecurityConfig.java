@@ -29,7 +29,7 @@ import lombok.RequiredArgsConstructor;
 // prePostEnabled = true) // by default
 @RequiredArgsConstructor
 public class WebSecurityConfig { // extends WebSecurityConfigurerAdapter {
-	
+
 	private final UserDetailsServiceImpl userDetailsService;
 
 	private final AuthEntryPointJwt unauthorizedHandler;
@@ -89,6 +89,7 @@ public class WebSecurityConfig { // extends WebSecurityConfigurerAdapter {
 				.sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
 				.authorizeHttpRequests(auth -> auth.requestMatchers("/api/auth/**").permitAll()
 						.requestMatchers("/api/v1/**").hasAnyAuthority("ROLE_USER", "ROLE_MODERATOR", "ROLE_ADMIN")
+						.requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/swagger-ui.html").permitAll()
 						.anyRequest().authenticated());
 
 		http.authenticationProvider(authenticationProvider());
