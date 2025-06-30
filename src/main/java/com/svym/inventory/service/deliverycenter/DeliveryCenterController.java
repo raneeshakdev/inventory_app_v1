@@ -13,7 +13,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.svym.inventory.service.dto.DeliveryCenterDTO;
-import com.svym.inventory.service.entity.DeliveryCenter;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -23,18 +22,16 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class DeliveryCenterController {
 
-    private final DeliveryCenterService service;
+    private final DeliveryCenterServiceImpl service;
 
     @GetMapping
-    public List<DeliveryCenter> getAll() {
+    public List<DeliveryCenterDTO> getAll() {
         return service.getAll();
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<DeliveryCenter> getById(@PathVariable Long id) {
-        return service.getById(id)
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+    public ResponseEntity<DeliveryCenterDTO> getById(@PathVariable Long id) {
+        return ResponseEntity.ok(service.getById(id));
     }
 
     @PostMapping

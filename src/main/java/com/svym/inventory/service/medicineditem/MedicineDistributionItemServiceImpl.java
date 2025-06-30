@@ -11,6 +11,7 @@ import com.svym.inventory.service.medicinedistribution.MedicineDistributionRepos
 import com.svym.inventory.service.medicinepbatch.MedicinePurchaseBatchRepository;
 import com.svym.inventory.service.repository.MedicineRepository;
 
+import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 
 @Service
@@ -46,15 +47,15 @@ public class MedicineDistributionItemServiceImpl implements MedicineDistribution
 		entity.setQuantity(dto.getQuantity());
 		if (dto.getMedicineId() != null) {
 			entity.setMedicine(medicineRepository.findById(dto.getMedicineId())
-					.orElseThrow(() -> new RuntimeException("Medicine not found")));
+					.orElseThrow(() -> new EntityNotFoundException("Medicine not found")));
 		}
 		if (dto.getDistributionId() != null) {
 			entity.setDistribution(distributionRepository.findById(dto.getDistributionId())
-					.orElseThrow(() -> new RuntimeException("Distribution not found")));
+					.orElseThrow(() -> new EntityNotFoundException("Distribution not found")));
 		}
 		if (dto.getBatchId() != null) {
 			entity.setBatch(medicinePurchaseBatchRepository.findById(dto.getBatchId())
-					.orElseThrow(() -> new RuntimeException("Batch not found")));
+					.orElseThrow(() -> new EntityNotFoundException("Batch not found")));
 		}
 		if (dto.getUnitPrice() != null) {
 			entity.setUnitPrice(dto.getUnitPrice());
@@ -78,7 +79,7 @@ public class MedicineDistributionItemServiceImpl implements MedicineDistribution
 	@Override
 	public MedicineDistributionItemDTO getById(Long id) {
 		return repository.findById(id).map(this::convertToDTO)
-				.orElseThrow(() -> new RuntimeException("Item not found"));
+				.orElseThrow(() -> new EntityNotFoundException("Item not found"));
 	}
 
 	@Override
@@ -89,19 +90,19 @@ public class MedicineDistributionItemServiceImpl implements MedicineDistribution
 	@Override
 	public MedicineDistributionItemDTO update(Long id, MedicineDistributionItemDTO dto) {
 		MedicineDistributionItem existing = repository.findById(id)
-				.orElseThrow(() -> new RuntimeException("Item not found"));
+				.orElseThrow(() -> new EntityNotFoundException("Item not found"));
 		existing.setQuantity(dto.getQuantity());
 		if (dto.getMedicineId() != null) {
 			existing.setMedicine(medicineRepository.findById(dto.getMedicineId())
-					.orElseThrow(() -> new RuntimeException("Medicine not found")));
+					.orElseThrow(() -> new EntityNotFoundException("Medicine not found")));
 		}
 		if (dto.getDistributionId() != null) {
 			existing.setDistribution(distributionRepository.findById(dto.getDistributionId())
-					.orElseThrow(() -> new RuntimeException("Distribution not found")));
+					.orElseThrow(() -> new EntityNotFoundException("Distribution not found")));
 		}
 		if (dto.getBatchId() != null) {
 			existing.setBatch(medicinePurchaseBatchRepository.findById(dto.getBatchId())
-					.orElseThrow(() -> new RuntimeException("Batch not found")));
+					.orElseThrow(() -> new EntityNotFoundException("Batch not found")));
 		}
 		if (dto.getUnitPrice() != null) {
 			existing.setUnitPrice(dto.getUnitPrice());
@@ -119,6 +120,9 @@ public class MedicineDistributionItemServiceImpl implements MedicineDistribution
 
 	@Override
 	public void delete(Long id) {
+		if (!repository.existsById(id)) {
+			throw new EntityNotFoundException("Item not found");
+		}
 		repository.deleteById(id);
 	}
 }

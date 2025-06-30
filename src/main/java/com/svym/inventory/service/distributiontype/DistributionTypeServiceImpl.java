@@ -30,6 +30,7 @@ public class DistributionTypeServiceImpl implements DistributionTypeService {
         DistributionType existing = repository.findById(id)
             .orElseThrow(() -> new EntityNotFoundException("Not found with ID: " + id));
         existing.setTypeName(dto.getTypeName());
+        existing.setDescription(dto.getDescription());
         return mapper.toDto(repository.save(existing));
     }
 

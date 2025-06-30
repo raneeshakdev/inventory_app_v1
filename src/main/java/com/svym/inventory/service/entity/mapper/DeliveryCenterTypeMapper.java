@@ -12,13 +12,21 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class DeliveryCenterTypeMapper {
 
-    private final ModelMapper modelMapper;
+	private final ModelMapper modelMapper;
 
-    public DeliveryCenterTypeDTO toDTO(DeliveryCenterType entity) {
-        return modelMapper.map(entity, DeliveryCenterTypeDTO.class);
-    }
+	public DeliveryCenterTypeDTO toDTO(DeliveryCenterType entity) {
+		return modelMapper.map(entity, DeliveryCenterTypeDTO.class);
+	}
 
-    public DeliveryCenterType toEntity(DeliveryCenterTypeDTO dto) {
-        return modelMapper.map(dto, DeliveryCenterType.class);
-    }
+	public DeliveryCenterType toEntity(DeliveryCenterTypeDTO dto) {
+		return modelMapper.map(dto, DeliveryCenterType.class);
+	}
+
+	public DeliveryCenterType updateEntityFromDto(DeliveryCenterTypeDTO dto, DeliveryCenterType existingEntity) {
+		if (dto == null || existingEntity == null) {
+			return existingEntity;
+		}
+		modelMapper.map(dto, existingEntity);
+		return existingEntity;
+	}
 }

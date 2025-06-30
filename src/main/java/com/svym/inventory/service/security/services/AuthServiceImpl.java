@@ -5,7 +5,6 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -17,6 +16,7 @@ import org.springframework.stereotype.Service;
 import com.svym.inventory.service.entity.ERole;
 import com.svym.inventory.service.entity.Role;
 import com.svym.inventory.service.entity.User;
+import com.svym.inventory.service.payload.request.ChangePasswordRequest;
 import com.svym.inventory.service.payload.request.LoginRequest;
 import com.svym.inventory.service.payload.request.SignupRequest;
 import com.svym.inventory.service.payload.response.JwtResponse;
@@ -25,25 +25,23 @@ import com.svym.inventory.service.repository.RoleRepository;
 import com.svym.inventory.service.repository.UserRepository;
 import com.svym.inventory.service.security.jwt.JwtUtils;
 
+import jakarta.persistence.EntityNotFoundException;
 import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
 
 @Service
+@RequiredArgsConstructor
 public class AuthServiceImpl {
 
-	@Autowired
-	AuthenticationManager authenticationManager;
+	private final AuthenticationManager authenticationManager;
 
-	@Autowired
-	UserRepository userRepository;
+	private final UserRepository userRepository;
 
-	@Autowired
-	RoleRepository roleRepository;
+	private final RoleRepository roleRepository;
 
-	@Autowired
-	PasswordEncoder encoder;
+	private final PasswordEncoder encoder;
 
-	@Autowired
-	JwtUtils jwtUtils;
+	private final JwtUtils jwtUtils;
 
 	public ResponseEntity<?> registerUser(@Valid SignupRequest signUpRequest) {
 		// Create new user's account
@@ -109,6 +107,18 @@ public class AuthServiceImpl {
 
 		return ResponseEntity.ok(new JwtResponse(jwt, userDetails.getId(), userDetails.getFirstName(),
 				userDetails.getLastName(), userDetails.getEmail(), roles));
+	}
+
+	public void changePassword(String username, ChangePasswordRequest request) {
+		User user = userRepository.findByEmail(username)
+				.orElseThrow(() -> new EntityNotFoundException("User not found"));
+
+		if (!encoder.matches(request.getOldPassword(), user.getPasswordHash())) {
+			throw new IllegalArgumentException("Old password is incorrect");
+		}
+
+		user.setPasswordHash(encoder.encode(request.getNewPassword()));
+		userRepository.save(user);
 	}
 
 }
