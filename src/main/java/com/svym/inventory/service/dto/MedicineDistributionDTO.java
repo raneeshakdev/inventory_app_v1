@@ -6,6 +6,7 @@ import java.util.Set;
 import com.svym.inventory.service.entity.MedicineDistributionItem;
 
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -18,16 +19,16 @@ public class MedicineDistributionDTO {
 	private Long id;
 
 	// Relationships
-	@NotBlank(message = "Patient ID cannot be null")
+	@NotNull(message = "Patient ID cannot be null")
 	private Long patientId;
 
-	@NotBlank(message = "Distribution Type ID cannot be null")
+	@NotNull(message = "Distribution Type ID cannot be null")
 	private Long distributionTypeId;
 
-	@NotBlank(message = "Delivery Center ID cannot be null")
+	@NotNull(message = "Delivery Center ID cannot be null")
 	private Long deliveryCenterId;
 
-	@NotBlank(message = "Total items cannot be null")
+	@NotNull(message = "Total items cannot be null")
 	private Integer totalItems;
 
 	@NotBlank(message = "Notes cannot be blank")
@@ -35,7 +36,7 @@ public class MedicineDistributionDTO {
 
 	private String createdBy;
 
-	@NotBlank(message = "Distribution items cannot be null")
+	@NotNull(message = "Distribution items cannot be null")
 	private Set<MedicineDistributionItem> distributionItems = new HashSet<>();
 
 }

@@ -26,8 +26,7 @@ public class LocationDTO {
 	@Size(max = 255, message = "Image path must be less than 255 characters")
 	private String imagePath;
 
-	@NotBlank(message = "Is Active flag is mandatory")
-	@Size(max = 5, message = "Is Active flag must be less than 5 characters")
+	@NotNull(message = "Is Active flag is mandatory")
 	private Boolean isActive;
 
 }

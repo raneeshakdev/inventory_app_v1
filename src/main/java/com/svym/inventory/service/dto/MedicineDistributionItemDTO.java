@@ -1,6 +1,7 @@
 package com.svym.inventory.service.dto;
 
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -12,21 +13,21 @@ public class MedicineDistributionItemDTO {
 
 	private Long id;
 
-	@NotBlank(message = "Distribution ID cannot be null")
+	@NotNull(message = "Distribution ID cannot be null")
 	private Long distributionId;
 
-	@NotBlank(message = "Medicine ID cannot be null")
+	@NotNull(message = "Medicine ID cannot be null")
 	private Long medicineId;
 
-	@NotBlank(message = "Batch ID cannot be null")
+	@NotNull(message = "Batch ID cannot be null")
 	private Long batchId;
 
-	@NotBlank(message = "Quantity cannot be null")
+	@NotNull(message = "Quantity cannot be null")
 	private Integer quantity;
 
 	@NotBlank(message = "Unit Price cannot be null")
 	private Double unitPrice;
 
-	@NotBlank(message = "Total Price cannot be null")
+	@NotNull(message = "Total Price cannot be null")
 	private Double totalPrice;
 }

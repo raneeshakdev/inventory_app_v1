@@ -22,7 +22,7 @@ public class DeliveryCenterDTO {
     @NotNull(message = "Location ID is required")
     private Long locationId;
 
-    @NotBlank(message = "Contact phone is mandatory")
+    @NotNull(message = "Contact phone is mandatory")
     private String contactPhone;
 
     @NotBlank(message = "Contact email is mandatory")

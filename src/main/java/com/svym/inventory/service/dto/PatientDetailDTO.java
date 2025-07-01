@@ -2,6 +2,7 @@ package com.svym.inventory.service.dto;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
@@ -26,14 +27,14 @@ public class PatientDetailDTO {
     @Size(min = 10, max = 500, message = "Patient address must be between 10 and 500 characters")
     private String address;
 
-    @NotBlank(message = "Phone number is required")
+    @NotNull(message = "Phone number is required")
     @Pattern(regexp = "\\d{10}", message = "Phone number must be 10 digits")
     private String phone;
 
     @Email(message = "Invalid email address")
     private String email;
 
-    @NotBlank(message = "Phone number is required")
+    @NotNull(message = "Phone number is required")
     @Pattern(regexp = "\\d{10}", message = "Emergency contact number must be 10 digits")
     private String emergencyContact;
 
