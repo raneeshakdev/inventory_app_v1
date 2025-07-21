@@ -51,6 +51,11 @@
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-validation</artifactId>
 		</dependency>
+		
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-aop</artifactId>
+		</dependency>
 
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
@@ -73,13 +78,6 @@
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-actuator</artifactId>
-		</dependency>
-
-		<!-- SpringDoc OpenAPI UI -->
-		<dependency>
-			<groupId>org.springdoc</groupId>
-			<artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
-			<version>2.3.0</version>
 		</dependency>
 
 		<dependency>
@@ -134,13 +132,40 @@
 			<artifactId>modelmapper</artifactId>
 			<version>3.1.1</version>
 		</dependency>
-		
 		<dependency>
-		<groupId>org.springdoc</groupId>
-		<artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
-		<version>2.7.0</version>
+			<groupId>org.springdoc</groupId>
+			<artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.flywaydb</groupId>
+			<artifactId>flyway-core</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.flywaydb</groupId>
+			<artifactId>flyway-database-postgresql</artifactId>
 		</dependency>
 	</dependencies>
+	
+	<dependencyManagement>
+    <dependencies>
+        <dependency>
+            <groupId>org.flywaydb</groupId>
+            <artifactId>flyway-core</artifactId>
+            <version>11.10.1</version>
+        </dependency>
+        <dependency>
+  <groupId>org.flywaydb</groupId>
+  <artifactId>flyway-database-postgresql</artifactId>
+  <version>11.10.1</version>
+  <scope>runtime</scope>
+</dependency>
+        <dependency>
+			<groupId>org.springdoc</groupId>
+			<artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
+			<version>2.7.0</version>
+		</dependency>
+    </dependencies>
+</dependencyManagement>
 
 	<build>
 		<plugins>
@@ -168,6 +193,19 @@
 					</excludes>
 				</configuration>
 			</plugin>
+			       <!-- <plugin>
+            <groupId>org.flywaydb</groupId>
+            <artifactId>flyway-maven-plugin</artifactId>
+            <version>11.10.1</version>  🔒 Stick to a specific version 
+            <configuration>
+                <url>jdbc:postgresql://localhost:5432/pms</url>
+                <user>postgres</user>
+                <password>root</password>
+                <locations>
+                    <location>filesystem:src/main/resources/db/migration</location>
+                </locations>
+            </configuration>
+        </plugin>-->
 		</plugins>
 	</build>
 

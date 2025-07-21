@@ -14,9 +14,12 @@ import org.springframework.stereotype.Component;
 @Target(ElementType.METHOD)
 public @interface Authorization {
 	public enum Access{
-		ADMIN("ROLE_ADMIN"),
-		USER("ROLE_USER", "ROLE_ADMIN", "ROLE_MODERATOR"),
-		MDERATOR("ROLE_MODERATOR", "ROLE_ADMIN");
+		ROLE_ADMIN("ROLE_ADMIN"),
+		ROLE_VIEWER("ROLE_VIEWER", "ROLE_ADMIN", "ROLE_LOCATION_ADMIN", "ROLE_DISTRIBUTION_ADMIN", "ROLE_INVENTORY_ADMIN"),
+		ROLE_LOCATION_ADMIN("ROLE_LOCATION_ADMIN", "ROLE_ADMIN", "ROLE_DISTRIBUTION_ADMIN", "ROLE_INVENTORY_ADMIN"),
+		ROLE_INVENTORY_ADMIN("ROLE_INVENTORY_ADMIN", "ROLE_ADMIN", "ROLE_DISTRIBUTION_ADMIN"),
+		ROLE_DISTRIBUTION_ADMIN("ROLE_DISTRIBUTION_ADMIN", "ROLE_ADMIN", "ROLE_INVENTORY_ADMIN");
+		
 		private String accessValue;
 
 		public List<String> getAccess() {
@@ -33,5 +36,5 @@ public @interface Authorization {
 		
 		
 	}
-	Access access() default Access.USER; // Default access level is READ
+	Access access() default Access.ROLE_VIEWER; // Default access level is READ
 }

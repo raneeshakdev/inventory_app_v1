@@ -1,16 +1,19 @@
 package com.svym.inventory.service.service;
 
+import java.util.List;
+import java.util.stream.StreamSupport;
+
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import com.svym.inventory.service.dto.MedicineDto;
 import com.svym.inventory.service.entity.Medicine;
 import com.svym.inventory.service.entity.mapper.MedicineMapper;
 import com.svym.inventory.service.repository.MedicineRepository;
+import com.svym.inventory.service.security.UserUtils;
+
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
-import java.util.List;
-import java.util.stream.StreamSupport;
 
 @Service
 @RequiredArgsConstructor
@@ -21,6 +24,7 @@ public class MedicineServiceImpl implements MedicineService{
     @Override
     @Transactional
     public Medicine save(Medicine medicine) {
+    	medicine.setCreatedBy(UserUtils.getCurrentUser().getId().toString());
         return medicineRepository.save(medicine);
     }
 
@@ -34,7 +38,7 @@ public class MedicineServiceImpl implements MedicineService{
         existingMedicine.setStockThreshold(medicine.getStockThreshold());
         existingMedicine.setOutOfStock(medicine.getOutOfStock());
         existingMedicine.setIsActive(medicine.getIsActive());
-        existingMedicine.setLastModifiedBy(medicine.getLastModifiedBy());
+        existingMedicine.setLastModifiedBy(UserUtils.getCurrentUser().getId().toString());
         return medicineRepository.save(existingMedicine);
     }
 
@@ -91,6 +95,7 @@ public class MedicineServiceImpl implements MedicineService{
     @Override
     public MedicineDto saveDto(MedicineDto medicineDto) {
         Medicine medicine = medicineMapper.toEntity(medicineDto);
+        medicine.setCreatedBy(UserUtils.getCurrentUser().getId().toString());
         Medicine savedMedicine = save(medicine);
         return medicineMapper.toDto(savedMedicine);
     }

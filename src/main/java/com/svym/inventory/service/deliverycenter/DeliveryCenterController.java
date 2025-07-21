@@ -12,6 +12,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.svym.inventory.service.custom.annotation.Authorization;
+import com.svym.inventory.service.custom.annotation.Authorization.Access;
 import com.svym.inventory.service.dto.DeliveryCenterDTO;
 
 import jakarta.validation.Valid;
@@ -25,6 +27,7 @@ public class DeliveryCenterController {
     private final DeliveryCenterServiceImpl service;
 
     @GetMapping
+    @Authorization(access = Access.ROLE_ADMIN)
     public List<DeliveryCenterDTO> getAll() {
         return service.getAll();
     }

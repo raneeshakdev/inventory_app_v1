@@ -15,4 +15,5 @@ public class ExpiringMedicineDTO {
     private Integer currentQuantity;
     private LocalDate expiryDate;
     private Integer daysToExpiry;
+    private String locationName;
 }

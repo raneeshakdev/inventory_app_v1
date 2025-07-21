@@ -1,10 +1,12 @@
 package com.svym.inventory.service.medicinepbatch;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
 
+import com.svym.inventory.service.dto.LocationMedicineStatusDTO;
 import com.svym.inventory.service.dto.MedicinePurchaseBatchDTO;
 import com.svym.inventory.service.entity.MedicinePurchaseBatch;
 import com.svym.inventory.service.purchasetype.PurchaseTypeRepository;
@@ -53,7 +55,7 @@ public class MedicinePurchaseBatchServiceImpl implements MedicinePurchaseBatchSe
         existing.setTotalPrice(dto.getTotalPrice());
         existing.setUnitPrice(dto.getUnitPrice());
         existing.setIsActive(dto.getIsActive());
-        existing.setLastModifiedBy(UserUtils.getCurrentUser());
+        existing.setLastModifiedBy(UserUtils.getCurrentUser().getId().toString());
         existing.setLastUpdatedAt(dto.getLastUpdatedAt());
      
         existing.setPurchaseType(purchaseTypeRepository.findById(dto.getPurchaseTypeId())
@@ -102,8 +104,8 @@ public class MedicinePurchaseBatchServiceImpl implements MedicinePurchaseBatchSe
         entity.setTotalPrice(dto.getTotalPrice());
         entity.setUnitPrice(dto.getUnitPrice());
         entity.setIsActive(dto.getIsActive());
-        entity.setCreatedBy(UserUtils.getCurrentUser()); // Assuming you have a UserContext to get the current user
-        entity.setLastModifiedBy(UserUtils.getCurrentUser());
+        entity.setCreatedBy(UserUtils.getCurrentUser().getId().toString()); // Assuming you have a UserContext to get the current user
+        entity.setLastModifiedBy(UserUtils.getCurrentUser().getId().toString());
         if(dto.getPurchaseTypeId() != null) {
 			entity.setPurchaseType(purchaseTypeRepository.findById(dto.getPurchaseTypeId())
 				.orElseThrow(() -> new EntityNotFoundException("Purchase Type not found")));
@@ -114,4 +116,10 @@ public class MedicinePurchaseBatchServiceImpl implements MedicinePurchaseBatchSe
 		}
         return entity;
     }
+
+	@Override
+	public List<LocationMedicineStatusDTO> getLocationWiseStatus() {
+		LocalDate cutoff = LocalDate.now().plusDays(30);
+		return repository.fetchLocationWiseStatus(cutoff);
+	}
 }

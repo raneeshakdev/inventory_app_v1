@@ -2,6 +2,7 @@ package com.svym.inventory.service.medicinepbatch;
 
 import java.util.List;
 
+import com.svym.inventory.service.dto.LocationMedicineStatusDTO;
 import com.svym.inventory.service.dto.MedicinePurchaseBatchDTO;
 
 public interface MedicinePurchaseBatchService {
@@ -10,4 +11,5 @@ public interface MedicinePurchaseBatchService {
     List<MedicinePurchaseBatchDTO> getAll();
     MedicinePurchaseBatchDTO update(Long id, MedicinePurchaseBatchDTO dto);
     void delete(Long id);
+    List<LocationMedicineStatusDTO> getLocationWiseStatus();
 }

@@ -5,11 +5,12 @@ import java.util.List;
 import org.springframework.security.core.context.SecurityContextHolder;
 
 import com.svym.inventory.service.entity.Role;
+import com.svym.inventory.service.security.services.UserDetailsImpl;
 
 public class UserUtils {
 	
-	public static String getCurrentUser() {
-		return SecurityContextHolder.getContext().getAuthentication().getName();
+	public static UserDetailsImpl getCurrentUser() {
+		return (UserDetailsImpl) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 	}
 	
 	public static List<Role> getCurrentUserRoles() {

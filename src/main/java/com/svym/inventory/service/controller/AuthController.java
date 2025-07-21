@@ -40,13 +40,14 @@ public class AuthController {
 			return ResponseEntity.badRequest().body(new MessageResponse("Error: Username is already taken!"));
 		}
 		return authService.registerUser(signUpRequest);
+		// return authService.newUserRequest(signUpRequest)
 	}
-	
-    @PostMapping("/change-password")
-    public ResponseEntity<?> changePassword(@RequestBody @Valid ChangePasswordRequest request,
-                                            Authentication authentication) {
-        String username = authentication.getName();
-        authService.changePassword(username, request);
-        return ResponseEntity.ok("Password changed successfully");
-    }
+
+	@PostMapping("/change-password")
+	public ResponseEntity<?> changePassword(@RequestBody @Valid ChangePasswordRequest request,
+			Authentication authentication) {
+		String username = authentication.getName();
+		authService.changePassword(username, request);
+		return ResponseEntity.ok("Password changed successfully");
+	}
 }

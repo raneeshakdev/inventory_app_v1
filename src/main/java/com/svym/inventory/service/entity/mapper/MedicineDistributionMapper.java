@@ -13,7 +13,7 @@ public class MedicineDistributionMapper {
 		MedicineDistributionDTO dto = new MedicineDistributionDTO();
 		dto.setId(entity.getId());
 		dto.setDistributionItems(entity.getDistributionItems());
-		dto.setCreatedBy(UserUtils.getCurrentUser());
+		dto.setCreatedBy(entity.getCreatedBy());
 		dto.setNotes(entity.getNotes());
 		dto.setTotalItems(entity.getTotalItems());
 		dto.setPatientId(entity.getPatient() != null ? entity.getPatient().getId() : null);
@@ -26,7 +26,7 @@ public class MedicineDistributionMapper {
 		MedicineDistribution entity = new MedicineDistribution();
 		entity.setId(dto.getId());
 		entity.setDistributionItems(dto.getDistributionItems());
-		entity.setCreatedBy(UserUtils.getCurrentUser());
+		entity.setCreatedBy(UserUtils.getCurrentUser().getId().toString());
 		entity.setNotes(dto.getNotes());
 		entity.setTotalItems(dto.getTotalItems());
 		return entity;

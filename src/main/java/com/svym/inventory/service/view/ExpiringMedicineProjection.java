@@ -8,4 +8,5 @@ public interface ExpiringMedicineProjection {
     Integer getCurrentQuantity();
     LocalDate getExpiryDate();
     Integer getDaysToExpiry();
+    String getLocationName();
 }

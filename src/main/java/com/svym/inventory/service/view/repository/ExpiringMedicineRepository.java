@@ -18,7 +18,7 @@ public interface ExpiringMedicineRepository extends JpaRepository<MedicinePurcha
     List<Object[]> findExpiringMedicinesRaw();
 
     // Optional: Project directly to DTO using Spring Projection
-    @Query(value = "SELECT m.name AS medicine_name, mpb.batch_name, mpb.current_quantity, " +
+    @Query(value = "SELECT m.name AS medicine_name, l.name AS loation_name, mpb.batch_name, mpb.current_quantity, " +
             "mpb.expiry_date, mpb.days_to_expiry " +
             "FROM v_expiring_medicines", nativeQuery = true)
     List<ExpiringMedicineProjection> findExpiringMedicines();

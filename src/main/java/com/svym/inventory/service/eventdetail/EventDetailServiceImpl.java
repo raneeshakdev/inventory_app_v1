@@ -9,6 +9,7 @@ import com.svym.inventory.service.dto.EventDetailDTO;
 import com.svym.inventory.service.entity.EventDetail;
 import com.svym.inventory.service.entity.mapper.EventDetailMapper;
 import com.svym.inventory.service.location.LocationRepository;
+import com.svym.inventory.service.security.UserUtils;
 
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
@@ -23,6 +24,7 @@ public class EventDetailServiceImpl implements EventDetailService {
     @Override
     public EventDetailDTO createEvent(EventDetailDTO dto) {
         EventDetail entity = EventDetailMapper.toEntity(dto);
+        entity.setCreatedBy(UserUtils.getCurrentUser().getId().toString());
         if (dto.getLocationId() != null) {
 			entity.setLocation(locationRepository.findById(dto.getLocationId())
 					.orElseThrow(() -> new EntityNotFoundException("Location not found")));

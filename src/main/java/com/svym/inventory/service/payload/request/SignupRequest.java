@@ -2,7 +2,9 @@ package com.svym.inventory.service.payload.request;
 
 import java.util.Set;
 
-import jakarta.validation.constraints.*;
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
 import lombok.Data;
 
 @Data
@@ -15,8 +17,6 @@ public class SignupRequest {
 
   private Set<String> role;
 
-  @NotBlank
-  @Size(min = 6, max = 40)
   private String password;
   
   @NotBlank
@@ -26,5 +26,7 @@ public class SignupRequest {
   @NotBlank
   @Size(min = 1, max = 50)
   private String lastName; 
+  
+  private Set<String> roles;
 
 }
