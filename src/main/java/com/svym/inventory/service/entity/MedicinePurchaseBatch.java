@@ -50,6 +50,10 @@ public class MedicinePurchaseBatch {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "purchase_type_id", nullable = false)
     private PurchaseType purchaseType;
+    
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "location_id", nullable = false)
+    private Location location;
 
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
