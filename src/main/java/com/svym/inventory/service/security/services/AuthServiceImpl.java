@@ -129,10 +129,12 @@ public class AuthServiceImpl {
 	public ResponseEntity<?> assignRole(RoleRequest roleRequest) {
 		User user = userRepository.findById(roleRequest.getUserId())
 				.orElseThrow(() -> new EntityNotFoundException("User not found with ID: " + roleRequest.getUserId()));
-		Set<Role> roles = new HashSet<>();
+
 		if (roleRequest.getRoles() == null || roleRequest.getRoles().isEmpty()) {
 			throw new IllegalArgumentException("Role cannot be null or empty");
 		}
+
+		Set<Role> roles = new HashSet<>(roleRequest.getRoles());
 		user.setRoles(roles);
 		userRepository.save(user);
 		return ResponseEntity.ok(new MessageResponse("Role assigned successfully!"));
