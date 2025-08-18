@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -35,6 +36,7 @@ import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class AuthServiceImpl {
 
 	private final AuthenticationManager authenticationManager;
@@ -153,7 +155,7 @@ public class AuthServiceImpl {
 
 		User user = renderUserToEntity(userAddRequest);
 
-		if (userAddRequest.getRoles() != null || !userAddRequest.getRoles().isEmpty()) {
+		if (userAddRequest.getRoles() != null && !userAddRequest.getRoles().isEmpty()) {
 			user.setRoles(userAddRequest.getRoles());
 		} else {
 			Role userRole = roleRepository.findByName(ERole.ROLE_VIEWER)
@@ -167,7 +169,7 @@ public class AuthServiceImpl {
 		userRepository.save(user);
 
 		// Optionally send email with the temporary password & this will implement later
-		System.out.println("Temporary Password: " + tempPassword);
+		log.info("Temporary Password: {}", tempPassword);
 		return ResponseEntity
 				.ok(new MessageResponse("User added successfully! Temporary password is: " + tempPassword));
 	}

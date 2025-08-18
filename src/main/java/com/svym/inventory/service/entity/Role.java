@@ -13,12 +13,22 @@ public class Role {
   @Column(length = 30)
   private ERole name;
 
+  @Column(name = "display_name", length = 100)
+  private String displayName;
+
+
+
   public Role() {
 
   }
 
   public Role(ERole name) {
     this.name = name;
+  }
+
+  public Role(ERole name, String displayName) {
+    this.name = name;
+    this.displayName = displayName;
   }
 
   public Integer getId() {
@@ -35,5 +45,13 @@ public class Role {
 
   public void setName(ERole name) {
     this.name = name;
+  }
+
+  public String getDisplayName() {
+    return displayName;
+  }
+
+  public void setDisplayName(String displayName) {
+    this.displayName = displayName;
   }
 }
