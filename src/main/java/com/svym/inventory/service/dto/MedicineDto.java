@@ -13,14 +13,11 @@ import java.time.LocalDateTime;
 @Builder
 public class MedicineDto {
     private Long id;
-    private String name;
+    private String medicineName;
     private Long typeId;
     private String typeName;
-    private Long userId;
     private LocalDateTime createdAt;
-    private String createdBy;
     private LocalDateTime lastModifiedAt;
-    private String lastModifiedBy;
     private Integer currentBatchesCount;
     private Integer stockThreshold;
     private Boolean outOfStock;

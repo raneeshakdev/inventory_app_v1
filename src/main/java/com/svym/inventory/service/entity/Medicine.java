@@ -7,10 +7,10 @@ import lombok.NoArgsConstructor;
 import java.time.LocalDateTime;
 
 /**
- * Represents a type of delivery center in the inventory system.
- * This entity contains details about the delivery center type such as its name, description,
- * and the timestamp when it was created.
- * This entity is mapped to the "delivery_center_types" table in the database.
+ * Represents a medicine in the inventory system.
+ * This entity contains details about the medicine such as its name, type,
+ * stock information, and timestamps.
+ * This entity is mapped to the "medicines" table in the database.
  */
 @Entity
 @Table(name = "medicines")
@@ -23,8 +23,8 @@ public class Medicine {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "name", nullable = false)
-    private String name;
+    @Column(name = "medicine_name", nullable = false)
+    private String medicineName;
 
     // Relationships
     @ManyToOne(fetch = FetchType.LAZY)
@@ -34,33 +34,34 @@ public class Medicine {
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
 
-    @Column(name = "created_by", nullable = false)
-    private String createdBy; // This might reference a user ID, but diagram shows 'created_by' as a string. Assuming it's a name or identifier.
-
     @Column(name = "last_modified_at")
     private LocalDateTime lastModifiedAt;
 
-    @Column(name = "last_modified_by")
-    private String lastModifiedBy;
-
     @Column(name = "current_batches_count", nullable = false)
-    private Integer currentBatchesCount;
+    private Integer currentBatchesCount = 0;
 
     @Column(name = "stock_threshold", nullable = false)
     private Integer stockThreshold;
 
     @Column(name = "out_of_stock", nullable = false)
-    private Boolean outOfStock;
+    private Boolean outOfStock = false;
 
     @Column(name = "is_active", nullable = false)
-    private Boolean isActive;
-
-
+    private Boolean isActive = true;
 
     @PrePersist
     protected void onCreate() {
         this.createdAt = LocalDateTime.now();
         this.lastModifiedAt = LocalDateTime.now();
+        if (this.currentBatchesCount == null) {
+            this.currentBatchesCount = 0;
+        }
+        if (this.outOfStock == null) {
+            this.outOfStock = false;
+        }
+        if (this.isActive == null) {
+            this.isActive = true;
+        }
     }
 
     @PreUpdate

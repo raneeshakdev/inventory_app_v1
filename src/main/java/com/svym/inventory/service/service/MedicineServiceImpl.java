@@ -10,7 +10,6 @@ import com.svym.inventory.service.dto.MedicineDto;
 import com.svym.inventory.service.entity.Medicine;
 import com.svym.inventory.service.entity.mapper.MedicineMapper;
 import com.svym.inventory.service.repository.MedicineRepository;
-import com.svym.inventory.service.security.UserUtils;
 
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
@@ -24,7 +23,6 @@ public class MedicineServiceImpl implements MedicineService{
     @Override
     @Transactional
     public Medicine save(Medicine medicine) {
-    	medicine.setCreatedBy(UserUtils.getCurrentUser().getId().toString());
         return medicineRepository.save(medicine);
     }
 
@@ -32,13 +30,12 @@ public class MedicineServiceImpl implements MedicineService{
     @Transactional
     public Medicine update(Long id, Medicine medicine) {
         Medicine existingMedicine = findById(id);
-        existingMedicine.setName(medicine.getName());
+        existingMedicine.setMedicineName(medicine.getMedicineName());
         existingMedicine.setType(medicine.getType());
         existingMedicine.setCurrentBatchesCount(medicine.getCurrentBatchesCount());
         existingMedicine.setStockThreshold(medicine.getStockThreshold());
         existingMedicine.setOutOfStock(medicine.getOutOfStock());
         existingMedicine.setIsActive(medicine.getIsActive());
-        existingMedicine.setLastModifiedBy(UserUtils.getCurrentUser().getId().toString());
         return medicineRepository.save(existingMedicine);
     }
 
@@ -95,7 +92,6 @@ public class MedicineServiceImpl implements MedicineService{
     @Override
     public MedicineDto saveDto(MedicineDto medicineDto) {
         Medicine medicine = medicineMapper.toEntity(medicineDto);
-        medicine.setCreatedBy(UserUtils.getCurrentUser().getId().toString());
         Medicine savedMedicine = save(medicine);
         return medicineMapper.toDto(savedMedicine);
     }
