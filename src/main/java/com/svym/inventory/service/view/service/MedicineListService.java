@@ -40,6 +40,8 @@ public class MedicineListService {
             dto.setHasExpiredBatches(p.getHasExpiredBatches());
             dto.setTotalNumberOfMedicines(p.getTotalNumberOfMedicines());
             dto.setNumberOfMedExpired(p.getNumberOfMedExpired());
+            dto.setUpdatedAt(p.getUpdatedAt());
+            dto.setUpdatedByFullName(p.getUpdatedByFullName());
             return dto;
         }).collect(Collectors.toList());
     }

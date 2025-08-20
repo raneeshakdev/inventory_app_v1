@@ -23,4 +23,6 @@ public interface MedicineService {
     MedicineDto saveDto(MedicineDto medicineDto);
 
     MedicineDto createMedicineWithLocationStock(MedicineDto medicineDto);
+
+    MedicineDto createMedicineWithLocationStock(MedicineDto medicineDto, Long userId);
 }

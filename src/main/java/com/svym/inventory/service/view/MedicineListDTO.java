@@ -3,6 +3,7 @@ package com.svym.inventory.service.view;
 import lombok.Data;
 import lombok.Getter;
 import lombok.Setter;
+import java.time.LocalDateTime;
 
 @Data
 @Getter
@@ -18,4 +19,6 @@ public class MedicineListDTO {
     private Boolean hasExpiredBatches;
     private Integer totalNumberOfMedicines;
     private Integer numberOfMedExpired;
+    private LocalDateTime updatedAt;
+    private String updatedByFullName;
 }

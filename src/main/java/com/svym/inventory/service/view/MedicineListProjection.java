@@ -1,5 +1,7 @@
 package com.svym.inventory.service.view;
 
+import java.time.LocalDateTime;
+
 public interface MedicineListProjection {
     Long getMedicineId();
     String getMedicineName();
@@ -11,4 +13,6 @@ public interface MedicineListProjection {
     Boolean getHasExpiredBatches();
     Integer getTotalNumberOfMedicines();
     Integer getNumberOfMedExpired();
+    LocalDateTime getUpdatedAt();
+    String getUpdatedByFullName();
 }

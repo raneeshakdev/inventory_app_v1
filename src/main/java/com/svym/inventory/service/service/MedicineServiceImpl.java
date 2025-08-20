@@ -10,10 +10,12 @@ import com.svym.inventory.service.dto.LocationDTO;
 import com.svym.inventory.service.dto.MedicineDto;
 import com.svym.inventory.service.entity.Medicine;
 import com.svym.inventory.service.entity.MedicineLocationStock;
+import com.svym.inventory.service.entity.User;
 import com.svym.inventory.service.entity.mapper.MedicineMapper;
 import com.svym.inventory.service.location.LocationService;
 import com.svym.inventory.service.repository.MedicineLocationStockRepository;
 import com.svym.inventory.service.repository.MedicineRepository;
+import com.svym.inventory.service.repository.UserRepository;
 
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
@@ -25,6 +27,7 @@ public class MedicineServiceImpl implements MedicineService{
     private final MedicineMapper medicineMapper;
     private final MedicineLocationStockRepository medicineLocationStockRepository;
     private final LocationService locationService;
+    private final UserRepository userRepository;
 
     @Override
     @Transactional
@@ -105,12 +108,25 @@ public class MedicineServiceImpl implements MedicineService{
     @Override
     @Transactional
     public MedicineDto createMedicineWithLocationStock(MedicineDto medicineDto) {
+        // Delegate to the method with userId as null for backward compatibility
+        return createMedicineWithLocationStock(medicineDto, null);
+    }
+
+    @Override
+    @Transactional
+    public MedicineDto createMedicineWithLocationStock(MedicineDto medicineDto, Long userId) {
         // Ensure ID is null for new medicine creation
         medicineDto.setId(null);
 
         // Save the medicine first
         Medicine medicine = medicineMapper.toEntity(medicineDto);
         Medicine savedMedicine = save(medicine);
+
+        // Get the user if userId is provided
+        User updatedByUser = null;
+        if (userId != null) {
+            updatedByUser = userRepository.findById(userId).orElse(null);
+        }
 
         // Get all available locations
         List<LocationDTO> locations = locationService.getAll();
@@ -125,6 +141,7 @@ public class MedicineServiceImpl implements MedicineService{
             medicineLocationStock.setHasExpiredBatches(false);
             medicineLocationStock.setTotalNumberOfMedicines(0);
             medicineLocationStock.setNumberOfMedExpired(0);
+            medicineLocationStock.setUpdatedBy(updatedByUser);
 
             medicineLocationStockRepository.save(medicineLocationStock);
         }
