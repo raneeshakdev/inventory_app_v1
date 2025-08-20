@@ -21,4 +21,6 @@ public interface MedicineService {
     List<MedicineDto> findAllMedicineAsDtoList();
 
     MedicineDto saveDto(MedicineDto medicineDto);
+
+    MedicineDto createMedicineWithLocationStock(MedicineDto medicineDto);
 }

@@ -6,9 +6,13 @@ import java.util.stream.StreamSupport;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.svym.inventory.service.dto.LocationDTO;
 import com.svym.inventory.service.dto.MedicineDto;
 import com.svym.inventory.service.entity.Medicine;
+import com.svym.inventory.service.entity.MedicineLocationStock;
 import com.svym.inventory.service.entity.mapper.MedicineMapper;
+import com.svym.inventory.service.location.LocationService;
+import com.svym.inventory.service.repository.MedicineLocationStockRepository;
 import com.svym.inventory.service.repository.MedicineRepository;
 
 import jakarta.persistence.EntityNotFoundException;
@@ -19,6 +23,8 @@ import lombok.RequiredArgsConstructor;
 public class MedicineServiceImpl implements MedicineService{
     private final MedicineRepository medicineRepository;
     private final MedicineMapper medicineMapper;
+    private final MedicineLocationStockRepository medicineLocationStockRepository;
+    private final LocationService locationService;
 
     @Override
     @Transactional
@@ -93,6 +99,36 @@ public class MedicineServiceImpl implements MedicineService{
     public MedicineDto saveDto(MedicineDto medicineDto) {
         Medicine medicine = medicineMapper.toEntity(medicineDto);
         Medicine savedMedicine = save(medicine);
+        return medicineMapper.toDto(savedMedicine);
+    }
+
+    @Override
+    @Transactional
+    public MedicineDto createMedicineWithLocationStock(MedicineDto medicineDto) {
+        // Ensure ID is null for new medicine creation
+        medicineDto.setId(null);
+
+        // Save the medicine first
+        Medicine medicine = medicineMapper.toEntity(medicineDto);
+        Medicine savedMedicine = save(medicine);
+
+        // Get all available locations
+        List<LocationDTO> locations = locationService.getAll();
+
+        // Create medicine location stock entries for each location with default values
+        for (LocationDTO location : locations) {
+            MedicineLocationStock medicineLocationStock = new MedicineLocationStock();
+            medicineLocationStock.setMedicineId(savedMedicine.getId());
+            medicineLocationStock.setLocationId(location.getId());
+            medicineLocationStock.setNumberOfBatches((short) 0);
+            medicineLocationStock.setIsOutOfStock(true); // Default to out of stock since no batches initially
+            medicineLocationStock.setHasExpiredBatches(false);
+            medicineLocationStock.setTotalNumberOfMedicines(0);
+            medicineLocationStock.setNumberOfMedExpired(0);
+
+            medicineLocationStockRepository.save(medicineLocationStock);
+        }
+
         return medicineMapper.toDto(savedMedicine);
     }
 

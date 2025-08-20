@@ -17,7 +17,7 @@ public class MedicineController {
 
     @PostMapping
     public ResponseEntity<MedicineDto> createMedicine(@RequestBody MedicineDto medicineDto) {
-        MedicineDto savedMedicine = medicineService.saveDto(medicineDto);
+        MedicineDto savedMedicine = medicineService.createMedicineWithLocationStock(medicineDto);
         return new ResponseEntity<>(savedMedicine, HttpStatus.CREATED);
     }
 
