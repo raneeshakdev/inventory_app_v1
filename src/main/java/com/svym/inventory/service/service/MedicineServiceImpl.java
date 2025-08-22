@@ -43,7 +43,7 @@ public class MedicineServiceImpl implements MedicineService{
         existingMedicine.setType(medicine.getType());
         existingMedicine.setCurrentBatchesCount(medicine.getCurrentBatchesCount());
         existingMedicine.setStockThreshold(medicine.getStockThreshold());
-        existingMedicine.setOutOfStock(medicine.getOutOfStock());
+        existingMedicine.setStockStatus(medicine.getStockStatus());
         existingMedicine.setIsActive(medicine.getIsActive());
         return medicineRepository.save(existingMedicine);
     }
@@ -70,7 +70,7 @@ public class MedicineServiceImpl implements MedicineService{
 
     @Override
     public List<Medicine> findOutOfStockMedicines() {
-        return List.of();
+        return medicineRepository.findByStockStatusFalse();
     }
 
     @Override

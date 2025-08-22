@@ -9,7 +9,7 @@ import java.util.List;
 
 @Repository
 public interface MedicineRepository extends CrudRepository<Medicine, Long> {
-    List<Medicine> findByOutOfStockTrue();
+    List<Medicine> findByStockStatusFalse();
 
     @Query("SELECT m FROM Medicine m WHERE m.isActive = true AND m.currentBatchesCount > 0")
     List<Medicine> findAvailableMedicines();

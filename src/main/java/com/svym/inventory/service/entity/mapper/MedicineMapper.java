@@ -25,7 +25,7 @@ public class MedicineMapper {
         vo.setLastModifiedAt(medicine.getLastModifiedAt());
         vo.setCurrentBatchesCount(medicine.getCurrentBatchesCount());
         vo.setStockThreshold(medicine.getStockThreshold());
-        vo.setOutOfStock(medicine.getOutOfStock());
+        vo.setStockStatus(medicine.getStockStatus());
         vo.setIsActive(medicine.getIsActive());
         return vo;
     }
@@ -46,7 +46,7 @@ public class MedicineMapper {
 
         medicine.setCurrentBatchesCount(vo.getCurrentBatchesCount() != null ? vo.getCurrentBatchesCount() : 0);
         medicine.setStockThreshold(vo.getStockThreshold());
-        medicine.setOutOfStock(vo.getOutOfStock() != null ? vo.getOutOfStock() : false);
+        medicine.setStockStatus(vo.getStockStatus() != null ? vo.getStockStatus() : false);
         medicine.setIsActive(vo.getIsActive() != null ? vo.getIsActive() : true);
         return medicine;
     }
