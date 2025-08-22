@@ -30,4 +30,6 @@ public class UserDTO {
 	private Set<ERole> roles = new HashSet<>();
 
 	private Boolean isTemporaryPwd;
+
+	private Boolean isActive;
 }

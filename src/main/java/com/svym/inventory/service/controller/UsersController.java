@@ -14,6 +14,7 @@ import com.svym.inventory.service.dto.UserDTO;
 import com.svym.inventory.service.entity.Role;
 import com.svym.inventory.service.payload.request.RoleRequest;
 import com.svym.inventory.service.payload.request.UserAddRequest;
+import com.svym.inventory.service.payload.request.UserUpdateRequest;
 import com.svym.inventory.service.security.services.AuthServiceImpl;
 
 import lombok.RequiredArgsConstructor;
@@ -43,5 +44,10 @@ public class UsersController {
 	@GetMapping("/getAll")
 	public ResponseEntity<List<UserDTO>> getAllUsers() {
 		return authService.getAllUsers();
+	}
+
+	@PutMapping("/update")
+	public ResponseEntity<?> updateUser(@RequestBody UserUpdateRequest userUpdateRequest) {
+		return authService.updateUser(userUpdateRequest);
 	}
 }

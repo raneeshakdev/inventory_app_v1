@@ -23,6 +23,7 @@ import com.svym.inventory.service.payload.request.LoginRequest;
 import com.svym.inventory.service.payload.request.RoleRequest;
 import com.svym.inventory.service.payload.request.SignupRequest;
 import com.svym.inventory.service.payload.request.UserAddRequest;
+import com.svym.inventory.service.payload.request.UserUpdateRequest;
 import com.svym.inventory.service.payload.response.JwtResponse;
 import com.svym.inventory.service.payload.response.MessageResponse;
 import com.svym.inventory.service.repository.RoleRepository;
@@ -198,9 +199,34 @@ public class AuthServiceImpl {
 			dto.setUpdatedAt(user.getUpdatedAt());
 			dto.setRoles(user.getRoles().stream().map(Role::getName).collect(Collectors.toSet()));
 			dto.setIsTemporaryPwd(user.getIsTemporaryPwd());
+			dto.setIsActive(user.getIsActive());
 			return dto;
 		}).toList();
 		return userDTOs.isEmpty() ? ResponseEntity.noContent().build() : ResponseEntity.ok(userDTOs);
 	}
+	public ResponseEntity<?> updateUser(UserUpdateRequest userUpdateRequest) {
+		User user = userRepository.findById(userUpdateRequest.getUserId())
+				.orElseThrow(() -> new EntityNotFoundException("User not found with ID: " + userUpdateRequest.getUserId()));
 
+		boolean isUpdated = false;
+
+		// Update roles if provided
+		if (userUpdateRequest.getRoles() != null && !userUpdateRequest.getRoles().isEmpty()) {
+			user.setRoles(userUpdateRequest.getRoles());
+			isUpdated = true;
+		}
+
+		// Update status if provided
+		if (userUpdateRequest.getIsActive() != null) {
+			user.setIsActive(userUpdateRequest.getIsActive());
+			isUpdated = true;
+		}
+
+		if (!isUpdated) {
+			return ResponseEntity.badRequest().body(new MessageResponse("No valid fields provided for update"));
+		}
+
+		userRepository.save(user);
+		return ResponseEntity.ok(new MessageResponse("User updated successfully!"));
+	}
 }
