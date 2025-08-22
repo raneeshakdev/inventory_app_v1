@@ -38,12 +38,12 @@ public class LocationStatisticsController {
     @PutMapping("/location/{locationId}")
     public ResponseEntity<LocationStatisticsDto> updateLocationStatistics(
             @PathVariable Long locationId,
-            @RequestParam Integer outOfStockCount,
+            @RequestParam Integer stockStatusCount,
             @RequestParam Integer expiredCount,
             @RequestParam Integer nearExpiryCount) {
 
         LocationStatisticsDto updatedStats = locationStatisticsService.updateLocationStatistics(
-                locationId, outOfStockCount, expiredCount, nearExpiryCount);
+                locationId, stockStatusCount, expiredCount, nearExpiryCount);
         return ResponseEntity.ok(updatedStats);
     }
 }

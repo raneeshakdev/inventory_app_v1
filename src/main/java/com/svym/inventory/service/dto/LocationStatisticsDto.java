@@ -14,7 +14,7 @@ public class LocationStatisticsDto {
     private Long locationId;
     private String locationName;
     private String locationAddress;
-    private Integer outOfStockCount;
+    private Integer stockStatusCount;
     private Integer expiredCount;
     private Integer nearExpiryCount;
     private LocalDateTime lastUpdated;

@@ -20,6 +20,6 @@ public class MedicineDto {
     private LocalDateTime lastModifiedAt;
     private Integer currentBatchesCount;
     private Integer stockThreshold;
-    private Boolean outOfStock;
+    private Boolean stockStatus;
     private Boolean isActive;
 }

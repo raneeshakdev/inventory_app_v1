@@ -12,7 +12,7 @@ import lombok.NoArgsConstructor;
 public class LocationMedicineStatusDTO {
 	
 	private Location location;
-	private Long outOfStock;
+	private Long stockStatus;
 	private Long expired;
 	private Long expiringSoon;
 }

@@ -43,8 +43,8 @@ public class Medicine {
     @Column(name = "stock_threshold", nullable = false)
     private Integer stockThreshold;
 
-    @Column(name = "out_of_stock", nullable = false)
-    private Boolean outOfStock = false;
+    @Column(name = "stock_status", nullable = false)
+    private Boolean stockStatus = false;
 
     @Column(name = "is_active", nullable = false)
     private Boolean isActive = true;
@@ -56,8 +56,8 @@ public class Medicine {
         if (this.currentBatchesCount == null) {
             this.currentBatchesCount = 0;
         }
-        if (this.outOfStock == null) {
-            this.outOfStock = false;
+        if (this.stockStatus == null) {
+            this.stockStatus = false;
         }
         if (this.isActive == null) {
             this.isActive = true;

@@ -38,14 +38,14 @@ public class LocationStatisticsService {
         return statistics.map(this::convertToDto);
     }
 
-    public LocationStatisticsDto updateLocationStatistics(Long locationId, Integer outOfStockCount,
+    public LocationStatisticsDto updateLocationStatistics(Long locationId, Integer stockStatusCount,
                                                          Integer expiredCount, Integer nearExpiryCount) {
         Optional<LocationStatistics> existingStats = locationStatisticsRepository.findByLocationIdAndIsActiveTrue(locationId);
 
         LocationStatistics statistics;
         if (existingStats.isPresent()) {
             statistics = existingStats.get();
-            statistics.setOutOfStockCount(outOfStockCount);
+            statistics.setStockStatusCount(stockStatusCount);
             statistics.setExpiredCount(expiredCount);
             statistics.setNearExpiryCount(nearExpiryCount);
         } else {
@@ -53,7 +53,7 @@ public class LocationStatisticsService {
             Location location = new Location();
             location.setId(locationId);
             statistics.setLocation(location);
-            statistics.setOutOfStockCount(outOfStockCount);
+            statistics.setStockStatusCount(stockStatusCount);
             statistics.setExpiredCount(expiredCount);
             statistics.setNearExpiryCount(nearExpiryCount);
         }
@@ -68,7 +68,7 @@ public class LocationStatisticsService {
         dto.setLocationId(statistics.getLocation().getId());
         dto.setLocationName(statistics.getLocation().getName());
         dto.setLocationAddress(statistics.getLocation().getLocationAddress());
-        dto.setOutOfStockCount(statistics.getOutOfStockCount());
+        dto.setStockStatusCount(statistics.getStockStatusCount());
         dto.setExpiredCount(statistics.getExpiredCount());
         dto.setNearExpiryCount(statistics.getNearExpiryCount());
         dto.setLastUpdated(statistics.getLastUpdated());

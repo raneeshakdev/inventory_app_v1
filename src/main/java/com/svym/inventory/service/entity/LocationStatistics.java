@@ -22,7 +22,7 @@ public class LocationStatistics {
     private Location location;
 
     @Column(name = "out_of_stock_count", nullable = false)
-    private Integer outOfStockCount = 0;
+    private Integer stockStatusCount = 0;
 
     @Column(name = "expired_count", nullable = false)
     private Integer expiredCount = 0;
