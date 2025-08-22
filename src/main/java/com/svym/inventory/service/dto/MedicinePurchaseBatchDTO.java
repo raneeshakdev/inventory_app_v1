@@ -22,23 +22,14 @@ public class MedicinePurchaseBatchDTO {
     @NotNull(message = "Medicine ID is required")
     private Long medicineId;
 
-    @NotNull(message = "Purchase date is required")
-    private LocalDateTime purchaseDate;
-
     @NotNull(message = "Expiry date is required")
     private LocalDateTime expiryDate;
 
-    @NotNull(message = "Quantity is required")
+    @NotNull(message = "Initial quantity is required")
     private Integer initialQuantity;
 
     @NotNull(message = "Current quantity is required")
     private Integer currentQuantity;
-
-    @NotNull(message = "Free quantity is required")
-    private Integer freeQuantity;
-
-    @NotNull(message = "Unit cost is required")
-    private Double unitCost;
 
     @NotNull(message = "Total price is required")
     private Double totalPrice;
@@ -48,6 +39,9 @@ public class MedicinePurchaseBatchDTO {
 
     @NotNull(message = "Purchase type ID is required")
     private Long purchaseTypeId;
+
+    @NotNull(message = "Location ID is required")
+    private Long locationId;
 
     @Column(name = "is_active", nullable = false)
     private Boolean isActive;

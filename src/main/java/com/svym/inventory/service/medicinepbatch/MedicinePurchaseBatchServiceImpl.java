@@ -1,6 +1,7 @@
 package com.svym.inventory.service.medicinepbatch;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -8,7 +9,9 @@ import org.springframework.stereotype.Service;
 
 import com.svym.inventory.service.dto.LocationMedicineStatusDTO;
 import com.svym.inventory.service.dto.MedicinePurchaseBatchDTO;
+import com.svym.inventory.service.dto.MedicinePurchaseBatchPartialUpdateDTO;
 import com.svym.inventory.service.entity.MedicinePurchaseBatch;
+import com.svym.inventory.service.location.LocationRepository;
 import com.svym.inventory.service.purchasetype.PurchaseTypeRepository;
 import com.svym.inventory.service.repository.MedicineRepository;
 import com.svym.inventory.service.security.UserUtils;
@@ -23,6 +26,7 @@ public class MedicinePurchaseBatchServiceImpl implements MedicinePurchaseBatchSe
     private final MedicinePurchaseBatchRepository repository;
     private final MedicineRepository medicineRepository; // Assuming you have a service to handle Medicine entity
     private final PurchaseTypeRepository purchaseTypeRepository; // Assuming you have a service to handle PurchaseType entity
+    private final LocationRepository locationRepository;
 
     @Override
     public MedicinePurchaseBatchDTO create(MedicinePurchaseBatchDTO dto) {
@@ -62,7 +66,8 @@ public class MedicinePurchaseBatchServiceImpl implements MedicinePurchaseBatchSe
 			.orElseThrow(() -> new EntityNotFoundException("Purchase Type not found")));
         existing.setMedicine(medicineRepository.findById(dto.getMedicineId())
 			.orElseThrow(() -> new EntityNotFoundException("Medicine not found")));
-        // Assume medicineId is handled elsewhere (or inject Medicine entity)
+        existing.setLocation(locationRepository.findById(dto.getLocationId())
+			.orElseThrow(() -> new EntityNotFoundException("Location not found")));
         return mapToDTO(repository.save(existing));
     }
 
@@ -85,6 +90,7 @@ public class MedicinePurchaseBatchServiceImpl implements MedicinePurchaseBatchSe
         dto.setTotalPrice(entity.getTotalPrice());
         dto.setUnitPrice(entity.getUnitPrice());
         dto.setPurchaseTypeId(entity.getPurchaseType().getId());
+        dto.setLocationId(entity.getLocation().getId());
         dto.setCreatedAt(entity.getCreatedAt());
         dto.setMedicineId(entity.getMedicine().getId());
         dto.setCreatedBy(entity.getCreatedBy());
@@ -114,6 +120,10 @@ public class MedicinePurchaseBatchServiceImpl implements MedicinePurchaseBatchSe
 			entity.setMedicine(medicineRepository.findById(dto.getMedicineId())
 				.orElseThrow(() -> new EntityNotFoundException("Medicine not found")));
 		}
+        if(dto.getLocationId() != null) {
+			entity.setLocation(locationRepository.findById(dto.getLocationId())
+				.orElseThrow(() -> new EntityNotFoundException("Location not found")));
+		}
         return entity;
     }
 
@@ -121,5 +131,35 @@ public class MedicinePurchaseBatchServiceImpl implements MedicinePurchaseBatchSe
 	public List<LocationMedicineStatusDTO> getLocationWiseStatus() {
 		LocalDate cutoff = LocalDate.now().plusDays(30);
 		return repository.fetchLocationWiseStatus(cutoff);
+	}
+
+	@Override
+	public List<MedicinePurchaseBatchDTO> getAvailableBatchesByLocationAndMedicine(Long locationId, Long medicineId) {
+		return repository.findAvailableBatchesByLocationAndMedicine(locationId, medicineId)
+			.stream()
+			.map(this::mapToDTO)
+			.collect(Collectors.toList());
+	}
+
+	@Override
+	public List<MedicinePurchaseBatchDTO> getAvailableBatchesByLocation(Long locationId) {
+		return repository.findAvailableBatchesByLocation(locationId)
+			.stream()
+			.map(this::mapToDTO)
+			.collect(Collectors.toList());
+	}
+
+	@Override
+	public MedicinePurchaseBatchDTO partialUpdate(Long id, MedicinePurchaseBatchPartialUpdateDTO dto) {
+		MedicinePurchaseBatch existing = repository.findById(id)
+			.orElseThrow(() -> new EntityNotFoundException("Batch not found"));
+
+		// Only update the specified fields
+		existing.setBatchName(dto.getBatchName());
+		existing.setExpiryDate(dto.getExpiryDate());
+		existing.setLastModifiedBy(UserUtils.getCurrentUser().getId().toString());
+		existing.setLastUpdatedAt(LocalDateTime.now());
+
+		return mapToDTO(repository.save(existing));
 	}
 }
