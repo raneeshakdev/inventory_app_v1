@@ -3,17 +3,22 @@ package com.svym.inventory.service.medicinepbatch;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.svym.inventory.service.dto.LocationMedicineStatusDTO;
 import com.svym.inventory.service.dto.MedicinePurchaseBatchDTO;
 import com.svym.inventory.service.dto.MedicinePurchaseBatchPartialUpdateDTO;
 import com.svym.inventory.service.entity.MedicinePurchaseBatch;
+import com.svym.inventory.service.entity.MedicineLocationStock;
+import com.svym.inventory.service.entity.MedicineLocationStockId;
 import com.svym.inventory.service.location.LocationRepository;
 import com.svym.inventory.service.purchasetype.PurchaseTypeRepository;
 import com.svym.inventory.service.repository.MedicineRepository;
+import com.svym.inventory.service.repository.MedicineLocationStockRepository;
 import com.svym.inventory.service.security.UserUtils;
 
 import jakarta.persistence.EntityNotFoundException;
@@ -27,11 +32,61 @@ public class MedicinePurchaseBatchServiceImpl implements MedicinePurchaseBatchSe
     private final MedicineRepository medicineRepository; // Assuming you have a service to handle Medicine entity
     private final PurchaseTypeRepository purchaseTypeRepository; // Assuming you have a service to handle PurchaseType entity
     private final LocationRepository locationRepository;
+    private final MedicineLocationStockRepository medicineLocationStockRepository;
 
     @Override
+    @Transactional
     public MedicinePurchaseBatchDTO create(MedicinePurchaseBatchDTO dto) {
+        // Create and save the medicine purchase batch
         MedicinePurchaseBatch entity = mapToEntity(dto);
-        return mapToDTO(repository.save(entity));
+        MedicinePurchaseBatch savedEntity = repository.save(entity);
+
+        // Update MedicineLocationStock
+        updateMedicineLocationStock(dto.getMedicineId(), dto.getLocationId(), dto.getInitialQuantity());
+
+        return mapToDTO(savedEntity);
+    }
+
+    private void updateMedicineLocationStock(Long medicineId, Long locationId, Integer initialQuantity) {
+        // Create composite key for MedicineLocationStock
+        MedicineLocationStockId stockId = new MedicineLocationStockId();
+        stockId.setMedicineId(medicineId);
+        stockId.setLocationId(locationId);
+
+        // Find existing record or create new one
+        Optional<MedicineLocationStock> existingStock = medicineLocationStockRepository.findById(stockId);
+        MedicineLocationStock medicineLocationStock;
+
+        if (existingStock.isPresent()) {
+            medicineLocationStock = existingStock.get();
+        } else {
+            // Create new record if it doesn't exist
+            medicineLocationStock = new MedicineLocationStock();
+            medicineLocationStock.setMedicineId(medicineId);
+            medicineLocationStock.setLocationId(locationId);
+            medicineLocationStock.setNumberOfBatches((short) 0);
+            medicineLocationStock.setIsOutOfStock(true);
+            medicineLocationStock.setHasExpiredBatches(false);
+            medicineLocationStock.setTotalNumberOfMedicines(0);
+            medicineLocationStock.setNumberOfMedExpired(0);
+        }
+
+        // Update the fields as requested
+        // Increment numberOfBatches by one
+        short currentBatches = medicineLocationStock.getNumberOfBatches();
+        medicineLocationStock.setNumberOfBatches((short) (currentBatches + 1));
+
+        // Increment totalNumberOfMedicines by initialQuantity
+        Integer currentTotal = medicineLocationStock.getTotalNumberOfMedicines();
+        medicineLocationStock.setTotalNumberOfMedicines(currentTotal + initialQuantity);
+
+        // Update stock status - if we have medicines, it's not out of stock
+        if (medicineLocationStock.getTotalNumberOfMedicines() > 0) {
+            medicineLocationStock.setIsOutOfStock(false);
+        }
+
+        // Save the updated MedicineLocationStock
+        medicineLocationStockRepository.save(medicineLocationStock);
     }
 
     @Override
