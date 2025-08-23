@@ -36,7 +36,14 @@ public class MedicineListService {
             dto.setLocationId(p.getLocationId());
             dto.setLocationName(p.getLocationName());
             dto.setNumberOfBatches(p.getNumberOfBatches());
-            dto.setStockStatus(p.getStockStatus());
+
+            // Set stock status to "-" if number of batches is 0, otherwise use the original stock status
+            if (p.getNumberOfBatches() != null && p.getNumberOfBatches() == 0) {
+                dto.setStockStatus("-");
+            } else {
+                dto.setStockStatus(p.getStockStatus());
+            }
+
             dto.setHasExpiredBatches(p.getHasExpiredBatches());
             dto.setTotalNumberOfMedicines(p.getTotalNumberOfMedicines());
             dto.setNumberOfMedExpired(p.getNumberOfMedExpired());
