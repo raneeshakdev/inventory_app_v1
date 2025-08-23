@@ -43,7 +43,7 @@ public class MedicinePurchaseBatchServiceImpl implements MedicinePurchaseBatchSe
 
     @Override
     public List<MedicinePurchaseBatchDTO> getAll() {
-        return repository.findAll().stream()
+        return repository.findAllNonDeleted().stream()
             .map(this::mapToDTO)
             .collect(Collectors.toList());
     }
@@ -77,6 +77,15 @@ public class MedicinePurchaseBatchServiceImpl implements MedicinePurchaseBatchSe
             throw new EntityNotFoundException("Batch not found");
         }
         repository.deleteById(id);
+    }
+
+    @Override
+    public void softDelete(Long id) {
+        String currentUserId = UserUtils.getCurrentUser().getId().toString();
+        int updatedRows = repository.softDeleteById(id, currentUserId);
+        if (updatedRows == 0) {
+            throw new EntityNotFoundException("Batch not found or already deleted");
+        }
     }
 
     // Mapper methods

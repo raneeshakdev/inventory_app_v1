@@ -13,6 +13,7 @@ public interface MedicinePurchaseBatchService {
     MedicinePurchaseBatchDTO update(Long id, MedicinePurchaseBatchDTO dto);
     MedicinePurchaseBatchDTO partialUpdate(Long id, MedicinePurchaseBatchPartialUpdateDTO dto);
     void delete(Long id);
+    void softDelete(Long id);
     List<LocationMedicineStatusDTO> getLocationWiseStatus();
     List<MedicinePurchaseBatchDTO> getAvailableBatchesByLocationAndMedicine(Long locationId, Long medicineId);
     List<MedicinePurchaseBatchDTO> getAvailableBatchesByLocation(Long locationId);

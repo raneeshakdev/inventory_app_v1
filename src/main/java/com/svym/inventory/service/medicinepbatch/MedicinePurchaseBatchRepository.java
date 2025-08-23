@@ -1,7 +1,6 @@
 package com.svym.inventory.service.medicinepbatch;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.List;
 
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -25,16 +24,18 @@ public interface MedicinePurchaseBatchRepository extends JpaRepository<MedicineP
 			        SUM(CASE WHEN b.expiryDate BETWEEN CURRENT_DATE AND :cutoff THEN 1 ELSE 0 END)
 			    )
 			    FROM MedicinePurchaseBatch b
+			    WHERE b.isDeleted = false
 			    GROUP BY b.location
 			""")
 	List<LocationMedicineStatusDTO> fetchLocationWiseStatus(@Param("cutoff") LocalDate cutoff);
 
 	@Query("""
-			SELECT b FROM MedicinePurchaseBatch b 
-			WHERE b.location.id = :locationId 
-			AND b.medicine.id = :medicineId 
-			AND b.isActive = true 
+			SELECT b FROM MedicinePurchaseBatch b
+			WHERE b.location.id = :locationId
+			AND b.medicine.id = :medicineId
+			AND b.isActive = true
 			AND b.currentQuantity > 0
+			AND b.isDeleted = false
 			ORDER BY b.expiryDate ASC
 			""")
 	List<MedicinePurchaseBatch> findAvailableBatchesByLocationAndMedicine(
@@ -42,28 +43,22 @@ public interface MedicinePurchaseBatchRepository extends JpaRepository<MedicineP
 		@Param("medicineId") Long medicineId);
 
 	@Query("""
-			SELECT b FROM MedicinePurchaseBatch b 
-			WHERE b.location.id = :locationId 
-			AND b.isActive = true 
+			SELECT b FROM MedicinePurchaseBatch b
+			WHERE b.location.id = :locationId
+			AND b.isActive = true
 			AND b.currentQuantity > 0
+			AND b.isDeleted = false
 			ORDER BY b.medicine.medicineName ASC, b.expiryDate ASC
 			""")
 	List<MedicinePurchaseBatch> findAvailableBatchesByLocation(@Param("locationId") Long locationId);
 
+	// Find all non-deleted batches
+	@Query("SELECT b FROM MedicinePurchaseBatch b WHERE b.isDeleted = false")
+	List<MedicinePurchaseBatch> findAllNonDeleted();
+
+	// Soft delete method
 	@Modifying
 	@Transactional
-	@Query("""
-			UPDATE MedicinePurchaseBatch b 
-			SET b.batchName = :batchName, 
-			    b.expiryDate = :expiryDate,
-			    b.lastModifiedBy = :lastModifiedBy,
-			    b.lastUpdatedAt = :lastUpdatedAt
-			WHERE b.id = :id
-			""")
-	int updateBatchNameAndExpiryDate(
-		@Param("id") Long id,
-		@Param("batchName") String batchName,
-		@Param("expiryDate") LocalDateTime expiryDate,
-		@Param("lastModifiedBy") String lastModifiedBy,
-		@Param("lastUpdatedAt") LocalDateTime lastUpdatedAt);
+	@Query("UPDATE MedicinePurchaseBatch b SET b.isDeleted = true, b.lastModifiedBy = :userId, b.lastUpdatedAt = CURRENT_TIMESTAMP WHERE b.id = :id AND b.isDeleted = false")
+	int softDeleteById(@Param("id") Long id, @Param("userId") String userId);
 }

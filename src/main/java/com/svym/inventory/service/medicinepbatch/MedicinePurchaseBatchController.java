@@ -78,4 +78,10 @@ public class MedicinePurchaseBatchController {
             @Valid @RequestBody MedicinePurchaseBatchPartialUpdateDTO dto) {
         return ResponseEntity.ok(service.partialUpdate(id, dto));
     }
+
+    @DeleteMapping("/{id}/soft")
+    public ResponseEntity<Void> softDelete(@PathVariable Long id) {
+        service.softDelete(id);
+        return ResponseEntity.noContent().build();
+    }
 }
