@@ -4,12 +4,13 @@ import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.Set;
 
 @Entity
-@Table(name = "medicina_distribution")
+@Table(name = "medicine_distribution")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -25,18 +26,12 @@ public class MedicineDistribution {
     private PatientDetail patient;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "distribution_type_id", nullable = false)
-    private DistributionType distributionType;
-
-    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "delivery_center_id", nullable = false)
     private DeliveryCenter deliveryCenter;
 
-    @Column(name = "total_items", nullable = false)
-    private Integer totalItems;
+    @Column(name = "distribution_date")
+    private LocalDate distributionDate;
 
-    @Column(name = "notes")
-    private String notes;
 
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;

@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.svym.inventory.service.dto.PatientDetailDTO;
@@ -32,6 +33,11 @@ public class PatientDetailController {
     @GetMapping
     public ResponseEntity<List<PatientDetailDTO>> getAll() {
         return ResponseEntity.ok(service.getAll());
+    }
+
+    @GetMapping("/search")
+    public ResponseEntity<List<PatientDetailDTO>> searchPatients(@RequestParam String searchTerm) {
+        return ResponseEntity.ok(service.searchPatients(searchTerm));
     }
 
     @GetMapping("/{id}")

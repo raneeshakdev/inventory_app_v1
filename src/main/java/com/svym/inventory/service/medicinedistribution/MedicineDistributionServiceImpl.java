@@ -6,7 +6,6 @@ import java.util.stream.Collectors;
 import org.springframework.stereotype.Service;
 
 import com.svym.inventory.service.deliverycenter.DeliveryCenterRepository;
-import com.svym.inventory.service.distributiontype.DistributionTypeRepository;
 import com.svym.inventory.service.dto.MedicineDistributionDTO;
 import com.svym.inventory.service.entity.MedicineDistribution;
 import com.svym.inventory.service.entity.mapper.MedicineDistributionMapper;
@@ -22,7 +21,6 @@ public class MedicineDistributionServiceImpl implements MedicineDistributionServ
 	private final MedicineDistributionRepository repository;
 	private final MedicineDistributionMapper mapper;
 	private final PatientDetailRepository patientDetailRepository;
-	private final DistributionTypeRepository distributionTypeRepository;
 	private final DeliveryCenterRepository deliveryCenterRepository;
 
 	@Override
@@ -30,9 +28,6 @@ public class MedicineDistributionServiceImpl implements MedicineDistributionServ
 		MedicineDistribution entity = mapper.toEntity(dto);
 		entity.setPatient(patientDetailRepository.findById(dto.getPatientId())
 				.orElseThrow(() -> new EntityNotFoundException("Patient not found with ID: " + dto.getPatientId())));
-		entity.setDistributionType(distributionTypeRepository.findById(dto.getDistributionTypeId())
-				.orElseThrow(() -> new EntityNotFoundException(
-						"DistributionType not found with ID: " + dto.getDistributionTypeId())));
 		entity.setDeliveryCenter(deliveryCenterRepository.findById(dto.getDeliveryCenterId()).orElseThrow(
 				() -> new EntityNotFoundException("DeliveryCenter not found with ID: " + dto.getDeliveryCenterId())));
 		return mapper.toDTO(repository.save(entity));
@@ -44,9 +39,6 @@ public class MedicineDistributionServiceImpl implements MedicineDistributionServ
 				.orElseThrow(() -> new EntityNotFoundException("MedicineDistribution not found with ID: " + id));
 		entity.setPatient(patientDetailRepository.findById(dto.getPatientId())
 				.orElseThrow(() -> new EntityNotFoundException("Patient not found with ID: " + dto.getPatientId())));
-		entity.setDistributionType(distributionTypeRepository.findById(dto.getDistributionTypeId())
-				.orElseThrow(() -> new EntityNotFoundException(
-						"DistributionType not found with ID: " + dto.getDistributionTypeId())));
 		entity.setDeliveryCenter(deliveryCenterRepository.findById(dto.getDeliveryCenterId()).orElseThrow(
 				() -> new EntityNotFoundException("DeliveryCenter not found with ID: " + dto.getDeliveryCenterId())));
 		mapper.updateEntityFromDto(dto, entity);

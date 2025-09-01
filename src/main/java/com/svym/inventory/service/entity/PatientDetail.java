@@ -17,8 +17,8 @@ public class PatientDetail {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "patient_id", unique = true, nullable = false) // Assuming this is a unique identifier from an external system or internal patient ID
-    private String patientId; // Changed to String as it might not be auto-generated ID
+    @Column(name = "patient_id", unique = true, nullable = false)
+    private String patientId;
 
     @Column(name = "name", nullable = false)
     private String name;
@@ -29,14 +29,9 @@ public class PatientDetail {
     @Column(name = "phone")
     private String phone;
 
-    @Column(name = "email")
-    private String email;
-
     @Column(name = "emergency_contact")
     private String emergencyContact;
 
-    @Column(name = "next_of_kin")
-    private String nextOfKin;
 
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;

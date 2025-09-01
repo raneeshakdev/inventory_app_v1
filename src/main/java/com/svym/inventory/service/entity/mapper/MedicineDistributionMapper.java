@@ -14,10 +14,8 @@ public class MedicineDistributionMapper {
 		dto.setId(entity.getId());
 		dto.setDistributionItems(entity.getDistributionItems());
 		dto.setCreatedBy(entity.getCreatedBy());
-		dto.setNotes(entity.getNotes());
-		dto.setTotalItems(entity.getTotalItems());
+		dto.setDistributionDate(entity.getDistributionDate());
 		dto.setPatientId(entity.getPatient() != null ? entity.getPatient().getId() : null);
-		dto.setDistributionTypeId(entity.getDistributionType() != null ? entity.getDistributionType().getId() : null);
 		dto.setDeliveryCenterId(entity.getDeliveryCenter() != null ? entity.getDeliveryCenter().getId() : null);
 		return dto;
 	}
@@ -27,14 +25,12 @@ public class MedicineDistributionMapper {
 		entity.setId(dto.getId());
 		entity.setDistributionItems(dto.getDistributionItems());
 		entity.setCreatedBy(UserUtils.getCurrentUser().getId().toString());
-		entity.setNotes(dto.getNotes());
-		entity.setTotalItems(dto.getTotalItems());
+		entity.setDistributionDate(dto.getDistributionDate());
 		return entity;
 	}
 
 	public void updateEntityFromDto(MedicineDistributionDTO dto, MedicineDistribution entity) {
 		entity.setDistributionItems(dto.getDistributionItems());
-		entity.setNotes(dto.getNotes());
-		entity.setTotalItems(dto.getTotalItems());
+		entity.setDistributionDate(dto.getDistributionDate());
 	}
 }

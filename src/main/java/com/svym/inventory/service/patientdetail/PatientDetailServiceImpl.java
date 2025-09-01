@@ -8,6 +8,8 @@ import org.springframework.stereotype.Service;
 
 import com.svym.inventory.service.dto.PatientDetailDTO;
 import com.svym.inventory.service.entity.PatientDetail;
+import com.svym.inventory.service.exception.DuplicatePatientIdException;
+import com.svym.inventory.service.exception.DuplicatePhoneNumberException;
 
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
@@ -22,6 +24,16 @@ public class PatientDetailServiceImpl implements PatientDetailService {
 
 	@Override
 	public PatientDetailDTO create(PatientDetailDTO dto) {
+		// Check if patientId already exists
+		if (dto.getPatientId() != null && repository.existsByPatientId(dto.getPatientId())) {
+			throw new DuplicatePatientIdException("Patient ID '" + dto.getPatientId() + "' already exists");
+		}
+
+		// Check if phone number already exists
+		if (dto.getPhone() != null && repository.existsByPhone(dto.getPhone())) {
+			throw new DuplicatePhoneNumberException("Phone number '" + dto.getPhone() + "' already exists");
+		}
+
 		PatientDetail entity = modelMapper.map(dto, PatientDetail.class);
 		return modelMapper.map(repository.save(entity), PatientDetailDTO.class);
 	}
@@ -58,5 +70,16 @@ public class PatientDetailServiceImpl implements PatientDetailService {
 			throw new EntityNotFoundException("PatientDetail not found with ID: " + id);
 		}
 		repository.deleteById(id);
+	}
+
+	@Override
+	public List<PatientDetailDTO> searchPatients(String searchTerm) {
+		if (searchTerm == null || searchTerm.trim().isEmpty()) {
+			return getAll();
+		}
+		return repository.findByNameOrPatientIdOrPhoneContainingIgnoreCase(searchTerm.trim())
+				.stream()
+				.map(entity -> modelMapper.map(entity, PatientDetailDTO.class))
+				.collect(Collectors.toList());
 	}
 }
