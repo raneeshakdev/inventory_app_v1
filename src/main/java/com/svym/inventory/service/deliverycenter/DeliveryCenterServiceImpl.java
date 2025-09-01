@@ -54,8 +54,6 @@ public class DeliveryCenterServiceImpl implements DeliveryCenterService {
                 .orElseThrow(() -> new EntityNotFoundException("DeliveryCenter not found with ID: " + id));
         existing.setName(dc.getName());
         existing.setContactPhone(dc.getContactPhone());
-        existing.setContactEmail(dc.getContactEmail());
-        // Assuming DeliveryCenter has methods to set typeId and locationId
         existing.setType(typeRepository.findById(dc.getTypeId())
 				.orElseThrow(() -> new EntityNotFoundException(DELIVERY_CENTER_TYPE_NOT_FOUND + dc.getTypeId())));
         existing.setLocation(locationRepository.findById(dc.getLocationId())
@@ -69,5 +67,23 @@ public class DeliveryCenterServiceImpl implements DeliveryCenterService {
 			DeliveryCenter entity = repository.findById(id)
 			.orElseThrow(() -> new EntityNotFoundException("DeliveryCenter not found with ID: " + id));
 	repository.delete(entity);
+	}
+
+	@Override
+	public List<DeliveryCenterDTO> getByLocationAndType(Long locationId, Long typeId) {
+		// Validate that both parameters are mandatory
+		if (locationId == null) {
+			throw new IllegalArgumentException("Location ID is mandatory and cannot be null");
+		}
+		if (typeId == null) {
+			throw new IllegalArgumentException("Type ID is mandatory and cannot be null");
+		}
+
+		// Since both parameters are mandatory, we always use the combined query
+		List<DeliveryCenter> deliveryCenters = repository.findActiveByLocationIdAndTypeId(locationId, typeId);
+
+		return deliveryCenters.stream()
+				.map(dc -> modelMapper.map(dc, DeliveryCenterDTO.class))
+				.collect(Collectors.toList());
 	}
 }

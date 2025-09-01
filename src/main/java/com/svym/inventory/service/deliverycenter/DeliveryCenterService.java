@@ -10,4 +10,7 @@ public interface DeliveryCenterService {
     List<DeliveryCenterDTO> getAll();
     DeliveryCenterDTO update(Long id, DeliveryCenterDTO dto);
     void delete(Long id);
+
+    // New method to get delivery centers by location and type
+    List<DeliveryCenterDTO> getByLocationAndType(Long locationId, Long typeId);
 }

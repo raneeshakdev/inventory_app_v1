@@ -34,8 +34,6 @@ public class DeliveryCenter {
     @Column(name = "contact_phone")
     private String contactPhone;
 
-    @Column(name = "contact_email")
-    private String contactEmail;
 
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
@@ -48,7 +46,7 @@ public class DeliveryCenter {
 
     // Relationships
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "type_id", nullable = false) // Assuming type_id refers to the DeliveryCenterType
+    @JoinColumn(name = "type_id", nullable = false)
     private DeliveryCenterType type;
 
 

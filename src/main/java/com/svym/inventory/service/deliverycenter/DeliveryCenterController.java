@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.svym.inventory.service.custom.annotation.Authorization;
@@ -35,6 +36,14 @@ public class DeliveryCenterController {
     @GetMapping("/{id}")
     public ResponseEntity<DeliveryCenterDTO> getById(@PathVariable Long id) {
         return ResponseEntity.ok(service.getById(id));
+    }
+
+    @GetMapping("/by-location-and-type")
+    public ResponseEntity<List<DeliveryCenterDTO>> getByLocationAndType(
+            @RequestParam Long locationId,
+            @RequestParam Long typeId) {
+        List<DeliveryCenterDTO> deliveryCenters = service.getByLocationAndType(locationId, typeId);
+        return ResponseEntity.ok(deliveryCenters);
     }
 
     @PostMapping

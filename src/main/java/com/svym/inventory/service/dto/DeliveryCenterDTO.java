@@ -1,6 +1,5 @@
 package com.svym.inventory.service.dto;
 
-import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
@@ -22,12 +21,8 @@ public class DeliveryCenterDTO {
     @NotNull(message = "Location ID is required")
     private Long locationId;
 
-    @NotNull(message = "Contact phone is mandatory")
+    @NotBlank(message = "Contact phone is mandatory")
     private String contactPhone;
-
-    @NotBlank(message = "Contact email is mandatory")
-    @Email
-    private String contactEmail;
 
     @NotNull(message = "Type ID is required")
     private Long typeId;
