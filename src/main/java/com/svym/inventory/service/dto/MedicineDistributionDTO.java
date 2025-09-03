@@ -1,10 +1,8 @@
 package com.svym.inventory.service.dto;
 
 import java.time.LocalDate;
-import java.util.HashSet;
-import java.util.Set;
-
-import com.svym.inventory.service.entity.MedicineDistributionItem;
+import java.util.ArrayList;
+import java.util.List;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -31,6 +29,6 @@ public class MedicineDistributionDTO {
 	private String createdBy;
 
 	@NotNull(message = "Distribution items cannot be null")
-	private Set<MedicineDistributionItem> distributionItems = new HashSet<>();
+	private List<MedicineDistributionItemDTO> distributionItems = new ArrayList<>();
 
 }

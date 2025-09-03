@@ -6,8 +6,8 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name = "medicine_distribution")
@@ -44,7 +44,7 @@ public class MedicineDistribution {
 
     // Relationships
     @OneToMany(mappedBy = "distribution", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
-    private Set<MedicineDistributionItem> distributionItems = new HashSet<>();
+    private List<MedicineDistributionItem> distributionItems = new ArrayList<>();
 
     @PrePersist
     protected void onCreate() {

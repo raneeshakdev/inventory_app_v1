@@ -1,33 +1,49 @@
 package com.svym.inventory.service.dto;
 
-import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Positive;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Data
-@AllArgsConstructor
 @NoArgsConstructor
+@AllArgsConstructor
 public class MedicineDistributionItemDTO {
 
-	private Long id;
+    private Long id;
 
-	@NotNull(message = "Distribution ID cannot be null")
-	private Long distributionId;
+    @NotNull(message = "Medicine cannot be null")
+    private MedicineDTO medicine;
 
-	@NotNull(message = "Medicine ID cannot be null")
-	private Long medicineId;
+    @NotNull(message = "Batch cannot be null")
+    private BatchDTO batch;
 
-	@NotNull(message = "Batch ID cannot be null")
-	private Long batchId;
+    @NotNull(message = "Quantity cannot be null")
+    @Positive(message = "Quantity must be positive")
+    private Integer quantity;
 
-	@NotNull(message = "Quantity cannot be null")
-	private Integer quantity;
+    @NotNull(message = "Unit price cannot be null")
+    @Positive(message = "Unit price must be positive")
+    private Double unitPrice;
 
-	@NotBlank(message = "Unit Price cannot be null")
-	private Double unitPrice;
+    @NotNull(message = "Total price cannot be null")
+    @Positive(message = "Total price must be positive")
+    private Double totalPrice;
 
-	@NotNull(message = "Total Price cannot be null")
-	private Double totalPrice;
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class MedicineDTO {
+        @NotNull(message = "Medicine ID cannot be null")
+        private Long id;
+    }
+
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class BatchDTO {
+        @NotNull(message = "Batch ID cannot be null")
+        private Long id;
+    }
 }

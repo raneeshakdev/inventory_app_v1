@@ -27,17 +27,23 @@ public class MedicineDistributionItemServiceImpl implements MedicineDistribution
 		MedicineDistributionItemDTO dto = new MedicineDistributionItemDTO();
 		dto.setId(entity.getId());
 		dto.setQuantity(entity.getQuantity());
-		if (entity.getMedicine() != null) {
-			dto.setMedicineId(entity.getMedicine().getId());
-		}
-		if (entity.getDistribution() != null) {
-			dto.setDistributionId(entity.getDistribution().getId());
-		}
-		if (entity.getBatch() != null) {
-			dto.setBatchId(entity.getBatch().getId());
-		}
 		dto.setUnitPrice(entity.getUnitPrice());
 		dto.setTotalPrice(entity.getTotalPrice());
+
+		// Set medicine info using nested DTO
+		if (entity.getMedicine() != null) {
+			MedicineDistributionItemDTO.MedicineDTO medicineDTO = new MedicineDistributionItemDTO.MedicineDTO();
+			medicineDTO.setId(entity.getMedicine().getId());
+			dto.setMedicine(medicineDTO);
+		}
+
+		// Set batch info using nested DTO
+		if (entity.getBatch() != null) {
+			MedicineDistributionItemDTO.BatchDTO batchDTO = new MedicineDistributionItemDTO.BatchDTO();
+			batchDTO.setId(entity.getBatch().getId());
+			dto.setBatch(batchDTO);
+		}
+
 		return dto;
 	}
 
@@ -45,28 +51,22 @@ public class MedicineDistributionItemServiceImpl implements MedicineDistribution
 		MedicineDistributionItem entity = new MedicineDistributionItem();
 		entity.setId(dto.getId());
 		entity.setQuantity(dto.getQuantity());
-		if (dto.getMedicineId() != null) {
-			entity.setMedicine(medicineRepository.findById(dto.getMedicineId())
+
+		// Handle medicine using nested DTO
+		if (dto.getMedicine() != null && dto.getMedicine().getId() != null) {
+			entity.setMedicine(medicineRepository.findById(dto.getMedicine().getId())
 					.orElseThrow(() -> new EntityNotFoundException("Medicine not found")));
 		}
-		if (dto.getDistributionId() != null) {
-			entity.setDistribution(distributionRepository.findById(dto.getDistributionId())
-					.orElseThrow(() -> new EntityNotFoundException("Distribution not found")));
-		}
-		if (dto.getBatchId() != null) {
-			entity.setBatch(medicinePurchaseBatchRepository.findById(dto.getBatchId())
+
+		// Handle batch using nested DTO
+		if (dto.getBatch() != null && dto.getBatch().getId() != null) {
+			entity.setBatch(medicinePurchaseBatchRepository.findById(dto.getBatch().getId())
 					.orElseThrow(() -> new EntityNotFoundException("Batch not found")));
 		}
-		if (dto.getUnitPrice() != null) {
-			entity.setUnitPrice(dto.getUnitPrice());
-		} else {
-			entity.setUnitPrice(0.0); // Default value if not provided
-		}
-		if (dto.getTotalPrice() != null) {
-			entity.setTotalPrice(dto.getTotalPrice());
-		} else {
-			entity.setTotalPrice(0.0); // Default value if not provided
-		}
+
+		entity.setUnitPrice(dto.getUnitPrice() != null ? dto.getUnitPrice() : 0.0);
+		entity.setTotalPrice(dto.getTotalPrice() != null ? dto.getTotalPrice() : 0.0);
+
 		return entity;
 	}
 
@@ -91,38 +91,31 @@ public class MedicineDistributionItemServiceImpl implements MedicineDistribution
 	public MedicineDistributionItemDTO update(Long id, MedicineDistributionItemDTO dto) {
 		MedicineDistributionItem existing = repository.findById(id)
 				.orElseThrow(() -> new EntityNotFoundException("Item not found"));
+
 		existing.setQuantity(dto.getQuantity());
-		if (dto.getMedicineId() != null) {
-			existing.setMedicine(medicineRepository.findById(dto.getMedicineId())
+
+		// Handle medicine using nested DTO
+		if (dto.getMedicine() != null && dto.getMedicine().getId() != null) {
+			existing.setMedicine(medicineRepository.findById(dto.getMedicine().getId())
 					.orElseThrow(() -> new EntityNotFoundException("Medicine not found")));
 		}
-		if (dto.getDistributionId() != null) {
-			existing.setDistribution(distributionRepository.findById(dto.getDistributionId())
-					.orElseThrow(() -> new EntityNotFoundException("Distribution not found")));
-		}
-		if (dto.getBatchId() != null) {
-			existing.setBatch(medicinePurchaseBatchRepository.findById(dto.getBatchId())
+
+		// Handle batch using nested DTO
+		if (dto.getBatch() != null && dto.getBatch().getId() != null) {
+			existing.setBatch(medicinePurchaseBatchRepository.findById(dto.getBatch().getId())
 					.orElseThrow(() -> new EntityNotFoundException("Batch not found")));
 		}
-		if (dto.getUnitPrice() != null) {
-			existing.setUnitPrice(dto.getUnitPrice());
-		} else {
-			existing.setUnitPrice(0.0); // Default value if not provided
-		}
-		if (dto.getTotalPrice() != null) {
-			existing.setTotalPrice(dto.getTotalPrice());
-		} else {
-			existing.setTotalPrice(0.0); // Default value if not provided
-		}
-		// Save the updated entity and convert it to DTO
+
+		existing.setUnitPrice(dto.getUnitPrice() != null ? dto.getUnitPrice() : existing.getUnitPrice());
+		existing.setTotalPrice(dto.getTotalPrice() != null ? dto.getTotalPrice() : existing.getTotalPrice());
+
 		return convertToDTO(repository.save(existing));
 	}
 
 	@Override
 	public void delete(Long id) {
-		if (!repository.existsById(id)) {
-			throw new EntityNotFoundException("Item not found");
-		}
-		repository.deleteById(id);
+		MedicineDistributionItem entity = repository.findById(id)
+				.orElseThrow(() -> new EntityNotFoundException("Item not found"));
+		repository.delete(entity);
 	}
 }
