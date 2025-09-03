@@ -1,6 +1,8 @@
 package com.svym.inventory.service.medicinedistribution;
 
+import java.time.LocalDate;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -10,14 +12,17 @@ import org.springframework.transaction.annotation.Transactional;
 import com.svym.inventory.service.deliverycenter.DeliveryCenterRepository;
 import com.svym.inventory.service.dto.MedicineDistributionDTO;
 import com.svym.inventory.service.dto.MedicineDistributionItemDTO;
+import com.svym.inventory.service.dto.MedicineDistributionViewDTO;
 import com.svym.inventory.service.entity.MedicineDistribution;
 import com.svym.inventory.service.entity.MedicineDistributionItem;
+import com.svym.inventory.service.entity.MedicineDistributionView;
 import com.svym.inventory.service.entity.MedicinePurchaseBatch;
 import com.svym.inventory.service.entity.mapper.MedicineDistributionMapper;
 import com.svym.inventory.service.medicineditem.MedicineDistributionItemRepository;
 import com.svym.inventory.service.medicinepbatch.MedicinePurchaseBatchRepository;
 import com.svym.inventory.service.patientdetail.PatientDetailRepository;
 import com.svym.inventory.service.repository.MedicineRepository;
+import com.svym.inventory.service.repository.MedicineDistributionViewRepository;
 
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
@@ -33,6 +38,7 @@ public class MedicineDistributionServiceImpl implements MedicineDistributionServ
 	private final MedicineDistributionItemRepository distributionItemRepository;
 	private final MedicinePurchaseBatchRepository medicinePurchaseBatchRepository;
 	private final MedicineRepository medicineRepository;
+	private final MedicineDistributionViewRepository medicineDistributionViewRepository;
 
 	@Override
 	@Transactional
@@ -112,7 +118,8 @@ public class MedicineDistributionServiceImpl implements MedicineDistributionServ
 			// Create new item
 			distributionItem = new MedicineDistributionItem();
 			distributionItem.setDistribution(distribution);
-			distributionItem.setMedicine(medicineRepository.findById(itemDTO.getMedicine().getId()).get());
+			distributionItem.setMedicine(medicineRepository.findById(itemDTO.getMedicine().getId())
+				.orElseThrow(() -> new EntityNotFoundException("Medicine not found with ID: " + itemDTO.getMedicine().getId())));
 			distributionItem.setBatch(batch);
 			distributionItem.setQuantity(itemDTO.getQuantity());
 			distributionItem.setUnitPrice(itemDTO.getUnitPrice());
@@ -156,5 +163,45 @@ public class MedicineDistributionServiceImpl implements MedicineDistributionServ
 	@Override
 	public List<MedicineDistributionDTO> getAll() {
 		return repository.findAll().stream().map(mapper::toDTO).collect(Collectors.toList());
+	}
+
+	@Override
+	public List<MedicineDistributionViewDTO> getMedicinesDistributedByPatient(Long deliveryCenterId, LocalDate distributionDate) {
+		List<MedicineDistributionView> viewData = medicineDistributionViewRepository
+			.findByDeliveryCenterIdAndDistributionDate(deliveryCenterId, distributionDate);
+
+		// Group by patient
+		Map<Long, List<MedicineDistributionView>> groupedByPatient = viewData.stream()
+			.collect(Collectors.groupingBy(MedicineDistributionView::getPatientId));
+
+		return groupedByPatient.entrySet().stream()
+			.map(entry -> {
+				List<MedicineDistributionView> patientMedicines = entry.getValue();
+				MedicineDistributionView firstRecord = patientMedicines.get(0);
+
+				List<MedicineDistributionViewDTO.MedicineDistributionItemViewDTO> medicines = patientMedicines.stream()
+					.map(record -> new MedicineDistributionViewDTO.MedicineDistributionItemViewDTO(
+						record.getDistributionId(),
+						record.getMedicineId(),
+						record.getMedicineName(),
+						record.getBatchId(),
+						record.getBatchName(),
+						record.getLocationId(),
+						record.getQuantity(),
+						record.getUnitPrice(),
+						record.getTotalPrice()
+					))
+					.collect(Collectors.toList());
+
+				return new MedicineDistributionViewDTO(
+					firstRecord.getPatientId(),
+					firstRecord.getPatientExternalId(),
+					firstRecord.getPatientName(),
+					firstRecord.getDeliveryCenterId(),
+					firstRecord.getDistributionDate(),
+					medicines
+				);
+			})
+			.collect(Collectors.toList());
 	}
 }
