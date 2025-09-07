@@ -16,6 +16,8 @@ import com.svym.inventory.service.dto.MedicineDistributionViewDTO;
 import com.svym.inventory.service.entity.MedicineDistribution;
 import com.svym.inventory.service.entity.MedicineDistributionItem;
 import com.svym.inventory.service.entity.MedicineDistributionView;
+import com.svym.inventory.service.entity.MedicineLocationStock;
+import com.svym.inventory.service.entity.MedicineLocationStockId;
 import com.svym.inventory.service.entity.MedicinePurchaseBatch;
 import com.svym.inventory.service.entity.mapper.MedicineDistributionMapper;
 import com.svym.inventory.service.medicineditem.MedicineDistributionItemRepository;
@@ -23,6 +25,7 @@ import com.svym.inventory.service.medicinepbatch.MedicinePurchaseBatchRepository
 import com.svym.inventory.service.patientdetail.PatientDetailRepository;
 import com.svym.inventory.service.repository.MedicineRepository;
 import com.svym.inventory.service.repository.MedicineDistributionViewRepository;
+import com.svym.inventory.service.repository.MedicineLocationStockRepository;
 
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
@@ -39,6 +42,7 @@ public class MedicineDistributionServiceImpl implements MedicineDistributionServ
 	private final MedicinePurchaseBatchRepository medicinePurchaseBatchRepository;
 	private final MedicineRepository medicineRepository;
 	private final MedicineDistributionViewRepository medicineDistributionViewRepository;
+	private final MedicineLocationStockRepository medicineLocationStockRepository;
 
 	@Override
 	@Transactional
@@ -133,18 +137,51 @@ public class MedicineDistributionServiceImpl implements MedicineDistributionServ
 		int quantityDifference = itemDTO.getQuantity() - oldQuantity;
 		batch.setCurrentQuantity(batch.getCurrentQuantity() - quantityDifference);
 		medicinePurchaseBatchRepository.save(batch);
+
+		// Update medicine location stock (reduce total number of medicines)
+		updateMedicineLocationStock(itemDTO.getMedicine().getId(), batch.getLocation().getId(), quantityDifference);
 	}
 
-	@Override
-	public MedicineDistributionDTO update(Long id, MedicineDistributionDTO dto) {
-		MedicineDistribution entity = repository.findById(id)
-				.orElseThrow(() -> new EntityNotFoundException("MedicineDistribution not found with ID: " + id));
-		entity.setPatient(patientDetailRepository.findById(dto.getPatientId())
-				.orElseThrow(() -> new EntityNotFoundException("Patient not found with ID: " + dto.getPatientId())));
-		entity.setDeliveryCenter(deliveryCenterRepository.findById(dto.getDeliveryCenterId()).orElseThrow(
-				() -> new EntityNotFoundException("DeliveryCenter not found with ID: " + dto.getDeliveryCenterId())));
-		mapper.updateEntityFromDto(dto, entity);
-		return mapper.toDTO(repository.save(entity));
+	/**
+	 * Updates the MedicineLocationStock by reducing the totalNumberOfMedicines
+	 * @param medicineId the ID of the medicine
+	 * @param locationId the ID of the location
+	 * @param quantityDifference the quantity to reduce (positive value means reduction)
+	 */
+	private void updateMedicineLocationStock(Long medicineId, Long locationId, int quantityDifference) {
+		// Create composite key for MedicineLocationStock
+		MedicineLocationStockId stockId = new MedicineLocationStockId();
+		stockId.setMedicineId(medicineId);
+		stockId.setLocationId(locationId);
+
+		// Find existing stock record
+		Optional<MedicineLocationStock> stockOptional = medicineLocationStockRepository.findById(stockId);
+
+		if (stockOptional.isPresent()) {
+			MedicineLocationStock stock = stockOptional.get();
+			int currentTotal = stock.getTotalNumberOfMedicines();
+			int newTotal = currentTotal - quantityDifference;
+
+			// Ensure total doesn't go negative
+			if (newTotal < 0) {
+				throw new IllegalStateException("Cannot reduce medicine stock below zero. Current: " +
+					currentTotal + ", Attempting to reduce by: " + quantityDifference);
+			}
+
+			stock.setTotalNumberOfMedicines(newTotal);
+
+			// Update out of stock flag
+			stock.setIsOutOfStock(newTotal == 0);
+
+			// Update timestamp
+			stock.setUpdatedAt(java.time.LocalDateTime.now());
+
+			medicineLocationStockRepository.save(stock);
+		} else {
+			// Stock record doesn't exist - this might indicate a data inconsistency
+			throw new EntityNotFoundException("MedicineLocationStock not found for medicineId: " +
+				medicineId + " and locationId: " + locationId);
+		}
 	}
 
 	@Override
@@ -203,5 +240,17 @@ public class MedicineDistributionServiceImpl implements MedicineDistributionServ
 				);
 			})
 			.collect(Collectors.toList());
+	}
+
+	@Override
+	public MedicineDistributionDTO update(Long id, MedicineDistributionDTO dto) {
+		MedicineDistribution entity = repository.findById(id)
+				.orElseThrow(() -> new EntityNotFoundException("MedicineDistribution not found with ID: " + id));
+		entity.setPatient(patientDetailRepository.findById(dto.getPatientId())
+				.orElseThrow(() -> new EntityNotFoundException("Patient not found with ID: " + dto.getPatientId())));
+		entity.setDeliveryCenter(deliveryCenterRepository.findById(dto.getDeliveryCenterId()).orElseThrow(
+				() -> new EntityNotFoundException("DeliveryCenter not found with ID: " + dto.getDeliveryCenterId())));
+		mapper.updateEntityFromDto(dto, entity);
+		return mapper.toDTO(repository.save(entity));
 	}
 }
