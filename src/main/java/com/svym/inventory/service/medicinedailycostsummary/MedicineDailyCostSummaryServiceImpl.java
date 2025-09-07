@@ -233,4 +233,66 @@ public class MedicineDailyCostSummaryServiceImpl implements MedicineDailyCostSum
                 .map(mapper::toDto)
                 .collect(Collectors.toList());
     }
+
+    @Override
+    public List<MedicineDailyCostSummaryDTO> getByDeliveryCenterAndDateRange(Long deliveryCenterId, LocalDate startDate, LocalDate endDate) {
+        // Use existing repository method with delivery center filter
+        return repository.findByDeliveryCenterIdAndDistDateBetween(deliveryCenterId, startDate, endDate)
+                .stream()
+                .map(mapper::toDto)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<MedicineDailyCostSummaryDTO> getByLocationAndDeliveryCenterAndDateRange(List<Long> locationIds, Long deliveryCenterId, LocalDate startDate, LocalDate endDate) {
+        if (locationIds == null || locationIds.isEmpty()) {
+            return getByDeliveryCenterAndDateRange(deliveryCenterId, startDate, endDate);
+        }
+
+        // Get results for all locations and filter by delivery center
+        List<MedicineDailyCostSummaryDTO> allResults = locationIds.stream()
+                .flatMap(locationId -> repository.findByLocationIdAndDistDateBetween(locationId, startDate, endDate).stream())
+                .map(mapper::toDto)
+                .filter(dto -> dto.getDeliveryCenterId() != null && dto.getDeliveryCenterId().equals(deliveryCenterId))
+                .collect(Collectors.toList());
+
+        return allResults;
+    }
+
+    @Override
+    public List<MedicineDailyCostSummaryDTO> getViewDataWithFilters(List<Long> locationIds, Long deliveryCenterId, LocalDate startDate, LocalDate endDate) {
+        List<MedicineDailyCostSummaryDTO> results;
+
+        if (locationIds != null && !locationIds.isEmpty() && deliveryCenterId != null && startDate != null && endDate != null) {
+            results = getByLocationAndDeliveryCenterAndDateRange(locationIds, deliveryCenterId, startDate, endDate);
+        } else if (locationIds != null && !locationIds.isEmpty() && startDate != null && endDate != null) {
+            // Filter by multiple locations and date range
+            results = locationIds.stream()
+                    .flatMap(locationId -> getByLocationAndDateRange(locationId, startDate, endDate).stream())
+                    .collect(Collectors.toList());
+        } else if (deliveryCenterId != null && startDate != null && endDate != null) {
+            results = getByDeliveryCenterAndDateRange(deliveryCenterId, startDate, endDate);
+        } else if (startDate != null && endDate != null) {
+            results = getByDateRange(startDate, endDate);
+        } else if (locationIds != null && !locationIds.isEmpty() && deliveryCenterId != null) {
+            // Filter by multiple locations and delivery center
+            results = locationIds.stream()
+                    .flatMap(locationId -> getByLocation(locationId).stream())
+                    .filter(dto -> dto.getDeliveryCenterId() != null && dto.getDeliveryCenterId().equals(deliveryCenterId))
+                    .collect(Collectors.toList());
+        } else if (locationIds != null && !locationIds.isEmpty()) {
+            // Filter by multiple locations only
+            results = locationIds.stream()
+                    .flatMap(locationId -> getByLocation(locationId).stream())
+                    .collect(Collectors.toList());
+        } else if (deliveryCenterId != null) {
+            results = getAll().stream()
+                    .filter(dto -> dto.getDeliveryCenterId() != null && dto.getDeliveryCenterId().equals(deliveryCenterId))
+                    .collect(Collectors.toList());
+        } else {
+            results = getAll();
+        }
+
+        return results;
+    }
 }

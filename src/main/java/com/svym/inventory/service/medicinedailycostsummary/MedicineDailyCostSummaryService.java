@@ -107,4 +107,20 @@ public interface MedicineDailyCostSummaryService {
      * Get daily cost summaries for a location within date range ordered by date and cost
      */
     List<MedicineDailyCostSummaryDTO> getByLocationAndDateRangeOrderByDateAndCost(Long locationId, LocalDate startDate, LocalDate endDate);
+
+    /**
+     * Get summaries for a specific delivery center within date range
+     */
+    List<MedicineDailyCostSummaryDTO> getByDeliveryCenterAndDateRange(Long deliveryCenterId, LocalDate startDate, LocalDate endDate);
+
+    /**
+     * Get summaries for specific locations and delivery center within date range
+     */
+    List<MedicineDailyCostSummaryDTO> getByLocationAndDeliveryCenterAndDateRange(List<Long> locationIds, Long deliveryCenterId, LocalDate startDate, LocalDate endDate);
+
+    /**
+     * Get summaries from view with dynamic filtering by locations, delivery center, and date range
+     * Any parameter can be null to skip that filter
+     */
+    List<MedicineDailyCostSummaryDTO> getViewDataWithFilters(List<Long> locationIds, Long deliveryCenterId, LocalDate startDate, LocalDate endDate);
 }
