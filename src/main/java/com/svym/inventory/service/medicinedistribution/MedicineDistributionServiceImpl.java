@@ -26,6 +26,7 @@ import com.svym.inventory.service.patientdetail.PatientDetailRepository;
 import com.svym.inventory.service.repository.MedicineRepository;
 import com.svym.inventory.service.repository.MedicineDistributionViewRepository;
 import com.svym.inventory.service.repository.MedicineLocationStockRepository;
+import com.svym.inventory.service.medicinedailycostsummary.MedicineDailyCostSummaryService;
 
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
@@ -43,6 +44,7 @@ public class MedicineDistributionServiceImpl implements MedicineDistributionServ
 	private final MedicineRepository medicineRepository;
 	private final MedicineDistributionViewRepository medicineDistributionViewRepository;
 	private final MedicineLocationStockRepository medicineLocationStockRepository;
+	private final MedicineDailyCostSummaryService medicineDailyCostSummaryService;
 
 	@Override
 	@Transactional
@@ -140,6 +142,42 @@ public class MedicineDistributionServiceImpl implements MedicineDistributionServ
 
 		// Update medicine location stock (reduce total number of medicines)
 		updateMedicineLocationStock(itemDTO.getMedicine().getId(), batch.getLocation().getId(), quantityDifference);
+
+		// Create or update daily cost summary
+		createOrUpdateDailyCostSummary(
+			itemDTO.getMedicine().getId(),
+			batch.getLocation().getId(),
+			distribution.getDistributionDate(),
+			quantityDifference,
+			itemDTO.getTotalPrice() - (oldQuantity > 0 ? (oldQuantity * itemDTO.getUnitPrice()) : 0.0)
+		);
+	}
+
+	/**
+	 * Creates or updates the daily cost summary for medicine distribution
+	 * @param medicineId the ID of the medicine
+	 * @param locationId the ID of the location
+	 * @param distributionDate the distribution date
+	 * @param quantityDifference the quantity difference (positive for new/increased distribution)
+	 * @param priceDifference the price difference for this distribution
+	 */
+	private void createOrUpdateDailyCostSummary(Long medicineId, Long locationId,
+			java.time.LocalDate distributionDate, int quantityDifference, Double priceDifference) {
+		try {
+			// Only create/update summary if there's actually a quantity difference
+			if (quantityDifference != 0) {
+				medicineDailyCostSummaryService.createOrUpdateSummary(
+					medicineId,
+					locationId,
+					distributionDate,
+					quantityDifference,
+					priceDifference
+				);
+			}
+		} catch (Exception e) {
+			// Log the error but don't fail the distribution process
+			System.err.println("Failed to update daily cost summary: " + e.getMessage());
+		}
 	}
 
 	/**
