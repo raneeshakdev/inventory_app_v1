@@ -1,5 +1,6 @@
 package com.svym.inventory.service.medicineditem;
 
+import java.time.LocalDate;
 import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -14,5 +15,15 @@ public interface MedicineDistributionItemRepository extends JpaRepository<Medici
     Optional<MedicineDistributionItem> findByDistributionIdAndMedicineId(
         @Param("distributionId") Long distributionId,
         @Param("medicineId") Long medicineId
+    );
+
+    @Query("SELECT mdi FROM MedicineDistributionItem mdi " +
+           "WHERE mdi.distribution.patient.id = :patientId " +
+           "AND mdi.medicine.id = :medicineId " +
+           "AND mdi.distribution.distributionDate = :distributionDate")
+    Optional<MedicineDistributionItem> findByPatientIdAndMedicineIdAndDistributionDate(
+        @Param("patientId") Long patientId,
+        @Param("medicineId") Long medicineId,
+        @Param("distributionDate") LocalDate distributionDate
     );
 }
