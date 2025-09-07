@@ -10,7 +10,7 @@ import java.time.LocalDate;
 import java.util.List;
 
 @Repository
-public interface MedicineDistributionViewRepository extends JpaRepository<MedicineDistributionView, Long> {
+public interface MedicineDistributionViewRepository extends JpaRepository<MedicineDistributionView, MedicineDistributionView.MedicineDistributionViewId> {
 
     @Query("SELECT mdv FROM MedicineDistributionView mdv " +
            "WHERE mdv.deliveryCenterId = :deliveryCenterId " +

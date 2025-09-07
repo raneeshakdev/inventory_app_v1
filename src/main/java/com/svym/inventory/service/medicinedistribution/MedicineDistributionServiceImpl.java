@@ -6,6 +6,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -31,6 +32,7 @@ import com.svym.inventory.service.medicinedailycostsummary.MedicineDailyCostSumm
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class MedicineDistributionServiceImpl implements MedicineDistributionService {
@@ -263,6 +265,7 @@ public class MedicineDistributionServiceImpl implements MedicineDistributionServ
 				List<MedicineDistributionView> patientMedicines = entry.getValue();
 				MedicineDistributionView firstRecord = patientMedicines.get(0);
 
+				// Convert each medicine distribution record to DTO
 				List<MedicineDistributionViewDTO.MedicineDistributionItemViewDTO> medicines = patientMedicines.stream()
 					.map(record -> new MedicineDistributionViewDTO.MedicineDistributionItemViewDTO(
 						record.getDistributionId(),
