@@ -42,6 +42,11 @@ public interface MedicineDailyCostSummaryService {
     MedicineDailyCostSummaryDTO getByMedicineLocationAndDate(Long medicineId, Long locationId, LocalDate distDate);
 
     /**
+     * Get summary by medicine, location, delivery center and distribution date
+     */
+    MedicineDailyCostSummaryDTO getByMedicineLocationDeliveryCenterAndDate(Long medicineId, Long locationId, Long deliveryCenterId, LocalDate distDate);
+
+    /**
      * Get all summaries for a specific date
      */
     List<MedicineDailyCostSummaryDTO> getByDate(LocalDate distDate);
@@ -88,6 +93,12 @@ public interface MedicineDailyCostSummaryService {
 
     /**
      * Create or update daily cost summary for a medicine distribution
+     * This method will either create a new record or update existing one for the same medicine, location, delivery center and date
+     */
+    MedicineDailyCostSummaryDTO createOrUpdateSummary(Long medicineId, Long locationId, Long deliveryCenterId, LocalDate distDate, Integer numberOfUnit, Double totalPrice);
+
+    /**
+     * Create or update daily cost summary for a medicine distribution (legacy method - kept for compatibility)
      * This method will either create a new record or update existing one for the same medicine, location and date
      */
     MedicineDailyCostSummaryDTO createOrUpdateSummary(Long medicineId, Long locationId, LocalDate distDate, Integer numberOfUnit, Double totalPrice);

@@ -14,7 +14,13 @@ import java.util.Optional;
 public interface MedicineDailyCostSummaryRepository extends JpaRepository<MedicineDailyCostSummary, Long> {
 
     /**
-     * Find summary by medicine, location and distribution date
+     * Find summary by medicine, location, delivery center and distribution date
+     */
+    Optional<MedicineDailyCostSummary> findByMedicineIdAndLocationIdAndDeliveryCenterIdAndDistDate(
+            Long medicineId, Long locationId, Long deliveryCenterId, LocalDate distDate);
+
+    /**
+     * Find summary by medicine, location and distribution date (legacy method - kept for compatibility)
      */
     Optional<MedicineDailyCostSummary> findByMedicineIdAndLocationIdAndDistDate(
             Long medicineId, Long locationId, LocalDate distDate);
@@ -55,6 +61,17 @@ public interface MedicineDailyCostSummaryRepository extends JpaRepository<Medici
      */
     List<MedicineDailyCostSummary> findByLocationIdAndDistDateBetween(
             Long locationId, LocalDate startDate, LocalDate endDate);
+
+    /**
+     * Find all summaries for a specific delivery center
+     */
+    List<MedicineDailyCostSummary> findByDeliveryCenterId(Long deliveryCenterId);
+
+    /**
+     * Find all summaries for a specific delivery center within date range
+     */
+    List<MedicineDailyCostSummary> findByDeliveryCenterIdAndDistDateBetween(
+            Long deliveryCenterId, LocalDate startDate, LocalDate endDate);
 
     /**
      * Get total cost for a medicine at a location within date range

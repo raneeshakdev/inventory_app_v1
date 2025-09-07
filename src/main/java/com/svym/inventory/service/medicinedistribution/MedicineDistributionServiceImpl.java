@@ -106,20 +106,27 @@ public class MedicineDistributionServiceImpl implements MedicineDistributionServ
 				batch.getCurrentQuantity() + ", Requested: " + itemDTO.getQuantity());
 		}
 
-		// Check if item already exists for this medicine in this distribution
+		// Check if item already exists for this patient, medicine, and date (across all distributions)
 		Optional<MedicineDistributionItem> existingItem = distributionItemRepository
-				.findByDistributionIdAndMedicineId(distribution.getId(), itemDTO.getMedicine().getId());
+				.findByPatientIdAndMedicineIdAndDistributionDate(
+					distribution.getPatient().getId(),
+					itemDTO.getMedicine().getId(),
+					distribution.getDistributionDate());
 
 		MedicineDistributionItem distributionItem;
-		int oldQuantity = 0;
 
 		if (existingItem.isPresent()) {
-			// Update existing item
+			// Update existing item by accumulating quantities and prices
 			distributionItem = existingItem.get();
-			oldQuantity = distributionItem.getQuantity();
-			distributionItem.setQuantity(itemDTO.getQuantity());
-			distributionItem.setTotalPrice(itemDTO.getTotalPrice());
-			distributionItem.setUnitPrice(itemDTO.getUnitPrice());
+
+			// Accumulate quantity and total price
+			distributionItem.setQuantity(distributionItem.getQuantity() + itemDTO.getQuantity());
+			distributionItem.setTotalPrice(distributionItem.getTotalPrice() + itemDTO.getTotalPrice());
+
+			// Recalculate unit price based on accumulated values
+			if (distributionItem.getQuantity() > 0) {
+				distributionItem.setUnitPrice(distributionItem.getTotalPrice() / distributionItem.getQuantity());
+			}
 		} else {
 			// Create new item
 			distributionItem = new MedicineDistributionItem();
@@ -135,21 +142,21 @@ public class MedicineDistributionServiceImpl implements MedicineDistributionServ
 		// Save the distribution item
 		distributionItemRepository.save(distributionItem);
 
-		// Update batch quantity (reduce inventory)
-		int quantityDifference = itemDTO.getQuantity() - oldQuantity;
-		batch.setCurrentQuantity(batch.getCurrentQuantity() - quantityDifference);
+		// Update batch quantity (reduce inventory by the new quantity being distributed)
+		batch.setCurrentQuantity(batch.getCurrentQuantity() - itemDTO.getQuantity());
 		medicinePurchaseBatchRepository.save(batch);
 
-		// Update medicine location stock (reduce total number of medicines)
-		updateMedicineLocationStock(itemDTO.getMedicine().getId(), batch.getLocation().getId(), quantityDifference);
+		// Update medicine location stock (reduce total number of medicines by the new quantity)
+		updateMedicineLocationStock(itemDTO.getMedicine().getId(), batch.getLocation().getId(), itemDTO.getQuantity());
 
-		// Create or update daily cost summary
+		// Create or update daily cost summary with the new quantity and price
 		createOrUpdateDailyCostSummary(
 			itemDTO.getMedicine().getId(),
 			batch.getLocation().getId(),
+			distribution.getDeliveryCenter().getId(),
 			distribution.getDistributionDate(),
-			quantityDifference,
-			itemDTO.getTotalPrice() - (oldQuantity > 0 ? (oldQuantity * itemDTO.getUnitPrice()) : 0.0)
+			itemDTO.getQuantity(),
+			itemDTO.getTotalPrice()
 		);
 	}
 
@@ -157,11 +164,12 @@ public class MedicineDistributionServiceImpl implements MedicineDistributionServ
 	 * Creates or updates the daily cost summary for medicine distribution
 	 * @param medicineId the ID of the medicine
 	 * @param locationId the ID of the location
+	 * @param deliveryCenterId the ID of the delivery center
 	 * @param distributionDate the distribution date
 	 * @param quantityDifference the quantity difference (positive for new/increased distribution)
 	 * @param priceDifference the price difference for this distribution
 	 */
-	private void createOrUpdateDailyCostSummary(Long medicineId, Long locationId,
+	private void createOrUpdateDailyCostSummary(Long medicineId, Long locationId, Long deliveryCenterId,
 			java.time.LocalDate distributionDate, int quantityDifference, Double priceDifference) {
 		try {
 			// Only create/update summary if there's actually a quantity difference
@@ -169,6 +177,7 @@ public class MedicineDistributionServiceImpl implements MedicineDistributionServ
 				medicineDailyCostSummaryService.createOrUpdateSummary(
 					medicineId,
 					locationId,
+					deliveryCenterId,
 					distributionDate,
 					quantityDifference,
 					priceDifference

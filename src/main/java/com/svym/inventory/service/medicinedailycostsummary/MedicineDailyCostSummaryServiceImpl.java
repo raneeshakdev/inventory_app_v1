@@ -6,6 +6,7 @@ import com.svym.inventory.service.entity.mapper.MedicineDailyCostSummaryMapper;
 import com.svym.inventory.service.repository.MedicineDailyCostSummaryRepository;
 import com.svym.inventory.service.repository.MedicineRepository;
 import com.svym.inventory.service.location.LocationRepository;
+import com.svym.inventory.service.deliverycenter.DeliveryCenterRepository;
 
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
@@ -25,6 +26,7 @@ public class MedicineDailyCostSummaryServiceImpl implements MedicineDailyCostSum
     private final MedicineDailyCostSummaryMapper mapper;
     private final MedicineRepository medicineRepository;
     private final LocationRepository locationRepository;
+    private final DeliveryCenterRepository deliveryCenterRepository;
 
     @Override
     @Transactional
@@ -37,6 +39,11 @@ public class MedicineDailyCostSummaryServiceImpl implements MedicineDailyCostSum
         // Validate location exists
         if (!locationRepository.existsById(dto.getLocationId())) {
             throw new EntityNotFoundException("Location not found with ID: " + dto.getLocationId());
+        }
+
+        // Validate delivery center exists if provided
+        if (dto.getDeliveryCenterId() != null && !deliveryCenterRepository.existsById(dto.getDeliveryCenterId())) {
+            throw new EntityNotFoundException("DeliveryCenter not found with ID: " + dto.getDeliveryCenterId());
         }
 
         MedicineDailyCostSummary entity = mapper.toEntity(dto);
@@ -91,6 +98,13 @@ public class MedicineDailyCostSummaryServiceImpl implements MedicineDailyCostSum
     @Override
     public MedicineDailyCostSummaryDTO getByMedicineLocationAndDate(Long medicineId, Long locationId, LocalDate distDate) {
         return repository.findByMedicineIdAndLocationIdAndDistDate(medicineId, locationId, distDate)
+                .map(mapper::toDto)
+                .orElse(null);
+    }
+
+    @Override
+    public MedicineDailyCostSummaryDTO getByMedicineLocationDeliveryCenterAndDate(Long medicineId, Long locationId, Long deliveryCenterId, LocalDate distDate) {
+        return repository.findByMedicineIdAndLocationIdAndDeliveryCenterIdAndDistDate(medicineId, locationId, deliveryCenterId, distDate)
                 .map(mapper::toDto)
                 .orElse(null);
     }
@@ -163,9 +177,9 @@ public class MedicineDailyCostSummaryServiceImpl implements MedicineDailyCostSum
 
     @Override
     @Transactional
-    public MedicineDailyCostSummaryDTO createOrUpdateSummary(Long medicineId, Long locationId, LocalDate distDate, Integer numberOfUnit, Double totalPrice) {
-        // Check if a summary already exists for this combination
-        Optional<MedicineDailyCostSummary> existingSummary = repository.findByMedicineIdAndLocationIdAndDistDate(medicineId, locationId, distDate);
+    public MedicineDailyCostSummaryDTO createOrUpdateSummary(Long medicineId, Long locationId, Long deliveryCenterId, LocalDate distDate, Integer numberOfUnit, Double totalPrice) {
+        // Check if a summary already exists for this combination including delivery center
+        Optional<MedicineDailyCostSummary> existingSummary = repository.findByMedicineIdAndLocationIdAndDeliveryCenterIdAndDistDate(medicineId, locationId, deliveryCenterId, distDate);
 
         if (existingSummary.isPresent()) {
             // Update existing summary by adding to the existing values
@@ -176,6 +190,32 @@ public class MedicineDailyCostSummaryServiceImpl implements MedicineDailyCostSum
             return mapper.toDto(summary);
         } else {
             // Create new summary
+            MedicineDailyCostSummaryDTO dto = new MedicineDailyCostSummaryDTO();
+            dto.setMedicineId(medicineId);
+            dto.setLocationId(locationId);
+            dto.setDeliveryCenterId(deliveryCenterId);
+            dto.setDistDate(distDate);
+            dto.setNumberOfUnit(numberOfUnit);
+            dto.setTotalPrice(totalPrice);
+            return create(dto);
+        }
+    }
+
+    @Override
+    @Transactional
+    public MedicineDailyCostSummaryDTO createOrUpdateSummary(Long medicineId, Long locationId, LocalDate distDate, Integer numberOfUnit, Double totalPrice) {
+        // Legacy method - check if a summary already exists for this combination (without delivery center)
+        Optional<MedicineDailyCostSummary> existingSummary = repository.findByMedicineIdAndLocationIdAndDistDate(medicineId, locationId, distDate);
+
+        if (existingSummary.isPresent()) {
+            // Update existing summary by adding to the existing values
+            MedicineDailyCostSummary summary = existingSummary.get();
+            summary.setNumberOfUnit(summary.getNumberOfUnit() + numberOfUnit);
+            summary.setTotalPrice(summary.getTotalPrice() + totalPrice);
+            summary = repository.save(summary);
+            return mapper.toDto(summary);
+        } else {
+            // Create new summary without delivery center ID
             MedicineDailyCostSummaryDTO dto = new MedicineDailyCostSummaryDTO();
             dto.setMedicineId(medicineId);
             dto.setLocationId(locationId);

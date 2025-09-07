@@ -16,7 +16,8 @@ import java.time.LocalDateTime;
 @Table(name = "medicine_daily_cost_summary",
        indexes = {
            @Index(name = "idx_medicine_daily_cost_summary_dist_date", columnList = "dist_date"),
-           @Index(name = "idx_medicine_daily_cost_summary_medicine_location", columnList = "medicine_id, location_id")
+           @Index(name = "idx_medicine_daily_cost_summary_medicine_location", columnList = "medicine_id, location_id"),
+           @Index(name = "idx_medicine_daily_cost_summary_delivery_center", columnList = "delivery_center_id")
        })
 @Data
 @NoArgsConstructor
@@ -32,6 +33,9 @@ public class MedicineDailyCostSummary {
 
     @Column(name = "location_id", nullable = false)
     private Long locationId;
+
+    @Column(name = "delivery_center_id", nullable = false)
+    private Long deliveryCenterId;
 
     @Column(name = "dist_date", nullable = false)
     private LocalDate distDate;
@@ -56,6 +60,10 @@ public class MedicineDailyCostSummary {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "location_id", insertable = false, updatable = false)
     private Location location;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "delivery_center_id", insertable = false, updatable = false)
+    private DeliveryCenter deliveryCenter;
 
     @PrePersist
     protected void onCreate() {

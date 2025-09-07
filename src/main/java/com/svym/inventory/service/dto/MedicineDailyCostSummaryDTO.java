@@ -21,6 +21,8 @@ public class MedicineDailyCostSummaryDTO {
     private String medicineName;
     private Long locationId;
     private String locationName;
+    private Long deliveryCenterId;
+    private String deliveryCenterName;
     private LocalDate distDate;
     private Integer numberOfUnit;
     private Double totalPrice;
@@ -32,12 +34,15 @@ public class MedicineDailyCostSummaryDTO {
      */
     public MedicineDailyCostSummaryDTO(Long medicineId, String medicineName,
                                      Long locationId, String locationName,
+                                     Long deliveryCenterId, String deliveryCenterName,
                                      LocalDate distDate, Integer numberOfUnit,
                                      Double totalPrice) {
         this.medicineId = medicineId;
         this.medicineName = medicineName;
         this.locationId = locationId;
         this.locationName = locationName;
+        this.deliveryCenterId = deliveryCenterId;
+        this.deliveryCenterName = deliveryCenterName;
         this.distDate = distDate;
         this.numberOfUnit = numberOfUnit;
         this.totalPrice = totalPrice;
