@@ -2,12 +2,17 @@ package com.svym.inventory.service.controller;
 
 import com.svym.inventory.service.dto.MedicineDailyCostSummaryDTO;
 import com.svym.inventory.service.medicinedailycostsummary.MedicineDailyCostSummaryService;
+import com.svym.inventory.service.common.ExcelExportService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.io.IOException;
 import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 /**
@@ -21,6 +26,9 @@ public class MedicineDailyCostSummaryController {
 
     @Autowired
     private MedicineDailyCostSummaryService service;
+
+    @Autowired
+    private ExcelExportService excelExportService;
 
     /**
      * Get data filtered by location ID and date range
@@ -142,6 +150,84 @@ public class MedicineDailyCostSummaryController {
         results = service.getViewDataWithFilters(locationIds, deliveryCenterId, startDate, endDate);
 
         return ResponseEntity.ok(results);
+    }
+
+    /**
+     * Export filtered data to Excel format
+     *
+     * @param locationId Optional location ID filter
+     * @param startDate Optional start date for date range filter (format: yyyy-MM-dd)
+     * @param endDate Optional end date for date range filter (format: yyyy-MM-dd)
+     * @return Excel file containing the filtered medicine daily cost summary data
+     * @throws IOException If an error occurs during Excel file generation
+     */
+    @GetMapping("/export")
+    public ResponseEntity<byte[]> exportToExcel(
+            @RequestParam(required = false) Long locationId,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate) throws IOException {
+
+        List<MedicineDailyCostSummaryDTO> results;
+
+        if (locationId != null && startDate != null && endDate != null) {
+            // Filter by location and date range
+            results = service.getByLocationAndDateRange(locationId, startDate, endDate);
+        } else if (startDate != null && endDate != null) {
+            // Filter by date range only
+            results = service.getByDateRange(startDate, endDate);
+        } else if (locationId != null) {
+            // Filter by location only
+            results = service.getByLocation(locationId);
+        } else {
+            // Return all data
+            results = service.getAll();
+        }
+
+        byte[] excelFile = excelExportService.exportMedicineDailyCostSummaryToExcel(results);
+
+        String fileName = "Medicine_Daily_Cost_Summary_" + LocalDate.now().format(DateTimeFormatter.ISO_DATE) + ".xlsx";
+
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" + fileName)
+                .contentType(MediaType.APPLICATION_OCTET_STREAM)
+                .body(excelFile);
+    }
+
+    /**
+     * Export filtered data to Excel format using POST method with advanced filtering
+     * Uses the same filtering logic as searchWithFilters endpoint
+     *
+     * @param filterRequest Request body containing filter criteria
+     * @return Excel file containing the filtered medicine daily cost summary data
+     * @throws IOException If an error occurs during Excel file generation
+     */
+    @PostMapping("/export")
+    public ResponseEntity<byte[]> exportToExcelWithFilters(
+            @RequestBody MedicineDailyCostSummaryFilterRequest filterRequest) throws IOException {
+
+        List<Long> locationIds = filterRequest.getLocationIds();
+        Long deliveryCenterId = filterRequest.getDeliveryCenterId();
+        LocalDate startDate = filterRequest.getStartDate();
+        LocalDate endDate = filterRequest.getEndDate();
+
+        // Handle single date scenario - if only one date is provided, use it for both start and end
+        if (startDate != null && endDate == null) {
+            endDate = startDate;
+        } else if (endDate != null && startDate == null) {
+            startDate = endDate;
+        }
+
+        // Use the service's dynamic filtering method (same as searchWithFilters)
+        List<MedicineDailyCostSummaryDTO> results = service.getViewDataWithFilters(locationIds, deliveryCenterId, startDate, endDate);
+
+        byte[] excelFile = excelExportService.exportMedicineDailyCostSummaryToExcel(results);
+
+        String fileName = "Medicine_Daily_Cost_Summary_" + LocalDate.now().format(DateTimeFormatter.ISO_DATE) + ".xlsx";
+
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" + fileName)
+                .contentType(MediaType.APPLICATION_OCTET_STREAM)
+                .body(excelFile);
     }
 }
 
