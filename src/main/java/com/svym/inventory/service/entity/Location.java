@@ -35,6 +35,9 @@ public class Location {
     @Column(name = "is_active", nullable = false)
     private Boolean isActive;
 
+    @Column(name = "is_delete", nullable = false, columnDefinition = "BOOLEAN DEFAULT FALSE")
+    private Boolean isDelete = false;
+
     @PrePersist
     protected void onCreate() {
         this.createdAt = LocalDateTime.now();

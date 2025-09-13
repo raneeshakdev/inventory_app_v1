@@ -32,7 +32,16 @@ public class LocationServiceImpl implements LocationService {
 			throw new EntityNotFoundException("Location not found with ID: " + id);
 		}
 		Location location = repository.findById(id).orElseThrow();
-		mapper.map(dto, location);
+
+		// Update fields individually to avoid ID mapping issues
+		location.setName(dto.getName());
+		location.setLocationAddress(dto.getLocationAddress());
+		location.setImagePath(dto.getImagePath());
+		location.setIsActive(dto.getIsActive());
+		if (dto.getIsDelete() != null) {
+			location.setIsDelete(dto.getIsDelete());
+		}
+
 		return mapper.map(repository.save(location), LocationDTO.class);
 	}
 
@@ -47,7 +56,7 @@ public class LocationServiceImpl implements LocationService {
 
 	@Override
 	public List<LocationDTO> getAll() {
-		return repository.findAll().stream().map(location -> mapper.map(location, LocationDTO.class))
+		return repository.findAllActiveLocations().stream().map(location -> mapper.map(location, LocationDTO.class))
 				.collect(Collectors.toList());
 	}
 
@@ -57,5 +66,15 @@ public class LocationServiceImpl implements LocationService {
 			throw new EntityNotFoundException("Location not found with ID: " + id);
 		}
 		repository.deleteById(id);
+	}
+
+	@Override
+	public void softDelete(Long id) {
+		if (!repository.existsById(id)) {
+			throw new EntityNotFoundException("Location not found with ID: " + id);
+		}
+		Location location = repository.findById(id).orElseThrow();
+		location.setIsDelete(true);
+		repository.save(location);
 	}
 }

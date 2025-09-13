@@ -22,11 +22,12 @@ public class LocationDTO {
 	@Size(max = 255, message = "Location address must be less than 255 characters")
 	private String locationAddress;
 
-	@NotNull(message = "Image path cannot be null")
 	@Size(max = 255, message = "Image path must be less than 255 characters")
 	private String imagePath;
 
 	@NotNull(message = "Is Active flag is mandatory")
 	private Boolean isActive;
+
+	private Boolean isDelete = false;
 
 }

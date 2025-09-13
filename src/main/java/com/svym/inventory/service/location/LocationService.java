@@ -9,4 +9,5 @@ public interface LocationService {
     LocationDTO getById(Long id);
     List<LocationDTO> getAll();
     void delete(Long id);
+    void softDelete(Long id);
 }

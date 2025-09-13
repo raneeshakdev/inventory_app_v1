@@ -49,4 +49,10 @@ public class LocationController {
         service.delete(id);
         return ResponseEntity.noContent().build();
     }
+
+    @PutMapping("/{id}/soft-delete")
+    public ResponseEntity<Void> softDelete(@PathVariable Long id) {
+        service.softDelete(id);
+        return ResponseEntity.noContent().build();
+    }
 }
