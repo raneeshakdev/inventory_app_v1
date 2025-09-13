@@ -1,6 +1,7 @@
 package com.svym.inventory.service.medicinepbatch;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -61,4 +62,16 @@ public interface MedicinePurchaseBatchRepository extends JpaRepository<MedicineP
 	@Transactional
 	@Query("UPDATE MedicinePurchaseBatch b SET b.isDeleted = true, b.lastModifiedBy = :userId, b.lastUpdatedAt = CURRENT_TIMESTAMP WHERE b.id = :id AND b.isDeleted = false")
 	int softDeleteById(@Param("id") Long id, @Param("userId") String userId);
+
+	@Query("""
+			SELECT b FROM MedicinePurchaseBatch b
+			WHERE b.medicine.id = :medicineId
+			AND b.location.id = :locationId
+			AND b.expiryDate < :currentDate
+			AND b.currentQuantity > 0
+			""")
+	List<MedicinePurchaseBatch> findExpiredBatchesByMedicineAndLocation(
+		@Param("medicineId") Long medicineId,
+		@Param("locationId") Long locationId,
+		@Param("currentDate") LocalDateTime currentDate);
 }
