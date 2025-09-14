@@ -47,7 +47,11 @@ public class ExpiringMedicineScheduler {
 			logger.info("Deleting all existing action items");
 			medicineActionItemsRepository.deleteAllActionItems();
 
-			// Step 2: Get the list of medicines in batches
+			// Step 2: Reset medicine location stock tracking fields for fresh start
+			logger.info("Resetting medicine location stock tracking fields");
+			resetMedicineLocationStockFields();
+
+			// Step 3: Get the list of medicines in batches
 			int page = 0;
 			Page<Medicine> medicinesPage;
 
@@ -68,6 +72,45 @@ public class ExpiringMedicineScheduler {
 
 		} catch (Exception e) {
 			logger.error("Error occurred during medicine expiry and stock check: ", e);
+			throw e;
+		}
+	}
+
+	/**
+	 * Reset medicine location stock tracking fields for a fresh start
+	 */
+	private void resetMedicineLocationStockFields() {
+		try {
+			LocalDateTime currentDate = LocalDateTime.now();
+
+			// Get all medicine location stocks in batches
+			int page = 0;
+			Page<MedicineLocationStock> stockPage;
+
+			do {
+				Pageable pageable = PageRequest.of(page, BATCH_SIZE);
+				stockPage = medicineLocationStockRepository.findAll(pageable);
+
+				logger.info("Resetting stock fields for batch {} with {} records", page + 1, stockPage.getContent().size());
+
+				for (MedicineLocationStock stock : stockPage.getContent()) {
+					// Reset the tracking fields
+					stock.setIsOutOfStock(false);
+					stock.setHasExpiredBatches(false);
+					stock.setNumberOfMedExpired(0);
+					stock.setUpdatedAt(currentDate);
+				}
+
+				// Save the batch
+				medicineLocationStockRepository.saveAll(stockPage.getContent());
+				page++;
+
+			} while (stockPage.hasNext());
+
+			logger.info("Successfully reset medicine location stock tracking fields");
+
+		} catch (Exception e) {
+			logger.error("Error resetting medicine location stock fields: ", e);
 			throw e;
 		}
 	}
@@ -116,17 +159,18 @@ public class ExpiringMedicineScheduler {
 								expiredBatchCount, totalExpiredQuantity, currentDate.toLocalDate()));
 			}
 
-			// Check stock levels
+			// Check stock levels - only check for 'Out of Stock' if number of batches > 1
 			Integer totalMedicines = locationStock.getTotalNumberOfMedicines();
 			Integer stockThreshold = medicine.getStockThreshold();
+			Short numberOfBatches = locationStock.getNumberOfBatches();
 
-			if (totalMedicines == 0) {
-				// Out of stock
+			if (totalMedicines == 0 && numberOfBatches > 1) {
+				// Out of stock - only when there are multiple batches
 				locationStock.setIsOutOfStock(true);
 				createActionItem(medicine, locationStock.getLocation(), "Out of Stock",
-						"No medicines available in stock");
+						String.format("No medicines available in stock (Batches: %d)", numberOfBatches));
 
-			} else if (totalMedicines < stockThreshold) {
+			} else if (totalMedicines > 0 && totalMedicines < stockThreshold) {
 				// Critically low stock
 				createActionItem(medicine, locationStock.getLocation(), "Critically Low",
 						String.format("Threshold: %d, Current stock: %d", stockThreshold, totalMedicines));
