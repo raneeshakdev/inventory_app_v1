@@ -12,13 +12,13 @@ import java.util.List;
 public interface LocationDonationStatsRepository extends JpaRepository<LocationDonationStats, Long> {
 
     @Query("""
-        SELECT l.name as name, SUM(lds.totalDonation) as amount
+        SELECT COALESCE(l.name, CONCAT('Location ', lds.locationId)) as name, SUM(lds.totalDonation) as amount
         FROM LocationDonationStats lds
-        JOIN Location l ON lds.locationId = l.id
+        LEFT JOIN Location l ON lds.locationId = l.id
         WHERE lds.locationId = :locationId
         AND lds.month = :month
         AND lds.year = :year
-        GROUP BY l.id, l.name
+        GROUP BY lds.locationId, l.name
         ORDER BY SUM(lds.totalDonation) DESC
         """)
     List<Object[]> findDonationsByLocationAndMonth(@Param("locationId") Long locationId,
@@ -26,37 +26,57 @@ public interface LocationDonationStatsRepository extends JpaRepository<LocationD
                                                   @Param("year") Integer year);
 
     @Query("""
-        SELECT l.name as name, SUM(lds.totalDonation) as amount
+        SELECT COALESCE(l.name, CONCAT('Location ', lds.locationId)) as name, SUM(lds.totalDonation) as amount
         FROM LocationDonationStats lds
-        JOIN Location l ON lds.locationId = l.id
+        LEFT JOIN Location l ON lds.locationId = l.id
         WHERE lds.month = :month
         AND lds.year = :year
-        GROUP BY l.id, l.name
+        GROUP BY lds.locationId, l.name
         ORDER BY SUM(lds.totalDonation) DESC
         """)
     List<Object[]> findDonationsByMonth(@Param("month") Integer month,
                                        @Param("year") Integer year);
 
     @Query("""
-        SELECT l.name as name, SUM(lds.totalDonation) as amount
+        SELECT COALESCE(l.name, CONCAT('Location ', lds.locationId)) as name, SUM(lds.totalDonation) as amount
         FROM LocationDonationStats lds
-        JOIN Location l ON lds.locationId = l.id
+        LEFT JOIN Location l ON lds.locationId = l.id
         WHERE lds.locationId = :locationId
-        AND lds.month = EXTRACT(MONTH FROM CURRENT_DATE)
-        AND lds.year = EXTRACT(YEAR FROM CURRENT_DATE)
-        GROUP BY l.id, l.name
+        AND lds.month = :month
+        AND lds.year = :year
+        GROUP BY lds.locationId, l.name
         ORDER BY SUM(lds.totalDonation) DESC
         """)
-    List<Object[]> findCurrentMonthDonationsByLocation(@Param("locationId") Long locationId);
+    List<Object[]> findCurrentMonthDonationsByLocation(@Param("locationId") Long locationId,
+                                                      @Param("month") Integer month,
+                                                      @Param("year") Integer year);
 
     @Query("""
-        SELECT l.name as name, SUM(lds.totalDonation) as amount
+        SELECT COALESCE(l.name, CONCAT('Location ', lds.locationId)) as name, SUM(lds.totalDonation) as amount
         FROM LocationDonationStats lds
-        JOIN Location l ON lds.locationId = l.id
-        WHERE lds.month = EXTRACT(MONTH FROM CURRENT_DATE)
-        AND lds.year = EXTRACT(YEAR FROM CURRENT_DATE)
-        GROUP BY l.id, l.name
+        LEFT JOIN Location l ON lds.locationId = l.id
+        WHERE lds.month = :month
+        AND lds.year = :year
+        GROUP BY lds.locationId, l.name
         ORDER BY SUM(lds.totalDonation) DESC
         """)
-    List<Object[]> findCurrentMonthDonationsForAllLocations();
+    List<Object[]> findCurrentMonthDonationsForAllLocations(@Param("month") Integer month,
+                                                           @Param("year") Integer year);
+
+    // Add method to get the latest month/year with data
+    @Query("""
+        SELECT lds.month, lds.year
+        FROM LocationDonationStats lds
+        ORDER BY lds.year DESC, lds.month DESC
+        LIMIT 1
+        """)
+    List<Object[]> findLatestMonthYear();
+
+    // Add method to get all available months/years
+    @Query("""
+        SELECT DISTINCT lds.month, lds.year
+        FROM LocationDonationStats lds
+        ORDER BY lds.year DESC, lds.month DESC
+        """)
+    List<Object[]> findAllAvailableMonthsYears();
 }

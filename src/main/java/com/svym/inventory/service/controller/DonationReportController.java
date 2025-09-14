@@ -16,7 +16,7 @@ public class DonationReportController {
     private final DonationReportService donationReportService;
 
     /**
-     * Get donation report for current month by location ID
+     * Get donation report for latest available month by location ID
      * If locationId is not provided, returns data for all locations
      */
     @GetMapping
@@ -56,7 +56,7 @@ public class DonationReportController {
     }
 
     /**
-     * Get donation report for current month by specific location ID
+     * Get donation report for latest available month by specific location ID
      */
     @GetMapping("/location/{locationId}")
     public ResponseEntity<List<ExpenseReportDto>> getDonationReportByLocationId(
@@ -64,5 +64,15 @@ public class DonationReportController {
 
         List<ExpenseReportDto> donationData = donationReportService.getDonationReportByLocation(locationId);
         return ResponseEntity.ok(donationData);
+    }
+
+    /**
+     * Get all available months/years that have donation data
+     * Useful for frontend to know what periods have data available
+     */
+    @GetMapping("/available-periods")
+    public ResponseEntity<List<Object[]>> getAvailableMonthsYears() {
+        List<Object[]> availablePeriods = donationReportService.getAvailableMonthsYears();
+        return ResponseEntity.ok(availablePeriods);
     }
 }

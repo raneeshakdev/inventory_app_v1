@@ -6,6 +6,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.IntStream;
 
@@ -23,15 +24,25 @@ public class DonationReportService {
     };
 
     public List<ExpenseReportDto> getDonationReportByLocation(Long locationId) {
+        // Get the latest month/year with data instead of current system date
+        Object[] latestMonthYear = getLatestAvailableMonthYear();
+        Integer month = (Integer) latestMonthYear[0];
+        Integer year = (Integer) latestMonthYear[1];
+
         List<Object[]> results = locationDonationStatsRepository
-            .findCurrentMonthDonationsByLocation(locationId);
+            .findCurrentMonthDonationsByLocation(locationId, month, year);
 
         return mapToDonationReportDto(results);
     }
 
     public List<ExpenseReportDto> getDonationReportForAllLocations() {
+        // Get the latest month/year with data instead of current system date
+        Object[] latestMonthYear = getLatestAvailableMonthYear();
+        Integer month = (Integer) latestMonthYear[0];
+        Integer year = (Integer) latestMonthYear[1];
+
         List<Object[]> results = locationDonationStatsRepository
-            .findCurrentMonthDonationsForAllLocations();
+            .findCurrentMonthDonationsForAllLocations(month, year);
 
         return mapToDonationReportDto(results);
     }
@@ -48,6 +59,24 @@ public class DonationReportService {
             .findDonationsByMonth(month, year);
 
         return mapToDonationReportDto(results);
+    }
+
+    // Helper method to get the latest available month/year with data
+    private Object[] getLatestAvailableMonthYear() {
+        List<Object[]> latestData = locationDonationStatsRepository.findLatestMonthYear();
+
+        if (latestData.isEmpty()) {
+            // Fallback to current system date if no data exists
+            LocalDateTime now = LocalDateTime.now();
+            return new Object[]{now.getMonthValue(), now.getYear()};
+        }
+
+        return latestData.get(0);
+    }
+
+    // New method to get all available months/years
+    public List<Object[]> getAvailableMonthsYears() {
+        return locationDonationStatsRepository.findAllAvailableMonthsYears();
     }
 
     private List<ExpenseReportDto> mapToDonationReportDto(List<Object[]> results) {
