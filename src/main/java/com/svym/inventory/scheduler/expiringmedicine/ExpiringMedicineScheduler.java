@@ -4,6 +4,7 @@ import com.svym.inventory.service.entity.*;
 import com.svym.inventory.service.repository.MedicineActionItemsRepository;
 import com.svym.inventory.service.repository.MedicineLocationStockRepository;
 import com.svym.inventory.service.repository.MedicineRepository;
+import com.svym.inventory.service.repository.LocationStatisticsRepository;
 import com.svym.inventory.service.medicinepbatch.MedicinePurchaseBatchRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -36,6 +37,9 @@ public class ExpiringMedicineScheduler {
 	@Autowired
 	private MedicinePurchaseBatchRepository medicinePurchaseBatchRepository;
 
+	@Autowired
+	private LocationStatisticsRepository locationStatisticsRepository;
+
 	// This method will be called every day at 12:15 AM
 	@Scheduled(cron = "0 15 0 * * *")
 	@Transactional
@@ -67,6 +71,10 @@ public class ExpiringMedicineScheduler {
 
 				page++;
 			} while (medicinesPage.hasNext());
+
+			// Step 4: Update location statistics based on action items
+			logger.info("Updating location statistics");
+			updateLocationStatistics();
 
 			logger.info("Medicine expiry and stock check scheduler completed successfully");
 
@@ -133,12 +141,19 @@ public class ExpiringMedicineScheduler {
 	private void processLocationStock(Medicine medicine, MedicineLocationStock locationStock) {
 		try {
 			LocalDateTime currentDate = LocalDateTime.now();
+			LocalDateTime twoWeeksFromNow = currentDate.plusWeeks(2);
 
 			// Get expired batches for this medicine and location
 			List<MedicinePurchaseBatch> expiredBatches = medicinePurchaseBatchRepository
 					.findExpiredBatchesByMedicineAndLocation(medicine.getId(), locationStock.getLocationId(), currentDate);
 
+			// Get near expiry batches (expiring in next 2 weeks, but not already expired)
+			List<MedicinePurchaseBatch> nearExpiryBatches = medicinePurchaseBatchRepository
+					.findNearExpiryBatchesByMedicineAndLocation(medicine.getId(), locationStock.getLocationId(),
+							currentDate, twoWeeksFromNow);
+
 			boolean hasExpiredBatches = !expiredBatches.isEmpty();
+			boolean hasNearExpiryBatches = !nearExpiryBatches.isEmpty();
 			int totalExpiredQuantity;
 			int expiredBatchCount;
 
@@ -159,13 +174,32 @@ public class ExpiringMedicineScheduler {
 								expiredBatchCount, totalExpiredQuantity, currentDate.toLocalDate()));
 			}
 
-			// Check stock levels - only check for 'Out of Stock' if number of batches > 1
+			// Check for near expiry medicines
+			if (hasNearExpiryBatches) {
+				int totalNearExpiryQuantity = nearExpiryBatches.stream()
+						.mapToInt(MedicinePurchaseBatch::getCurrentQuantity)
+						.sum();
+				int nearExpiryBatchCount = nearExpiryBatches.size();
+
+				// Find the earliest expiry date among near expiry batches
+				LocalDateTime earliestExpiryDate = nearExpiryBatches.stream()
+						.map(MedicinePurchaseBatch::getExpiryDate)
+						.min(LocalDateTime::compareTo)
+						.orElse(twoWeeksFromNow);
+
+				// Create action item for near expiry medicines
+				createActionItem(medicine, locationStock.getLocation(), "Near Expiry",
+						String.format("Near expiry batches: %d, Near expiry medicines: %d, Earliest expiry: %s",
+								nearExpiryBatchCount, totalNearExpiryQuantity, earliestExpiryDate.toLocalDate()));
+			}
+
+			// Check stock levels
 			Integer totalMedicines = locationStock.getTotalNumberOfMedicines();
 			Integer stockThreshold = medicine.getStockThreshold();
 			Short numberOfBatches = locationStock.getNumberOfBatches();
 
-			if (totalMedicines == 0 && numberOfBatches > 0) {
-				// Out of stock - only when there are multiple batches
+			if (totalMedicines == 0 && numberOfBatches != null && numberOfBatches > 0) {
+				// Out of stock - when no medicines are available
 				locationStock.setIsOutOfStock(true);
 				createActionItem(medicine, locationStock.getLocation(), "Out of Stock",
 						String.format("No medicines available in stock (Batches: %d)", numberOfBatches));
@@ -203,6 +237,60 @@ public class ExpiringMedicineScheduler {
 		} catch (Exception e) {
 			logger.error("Error creating action item for medicine ID {} and location ID {}: ",
 					medicine.getId(), location.getId(), e);
+		}
+	}
+
+	private void updateLocationStatistics() {
+		try {
+			LocalDateTime currentDate = LocalDateTime.now();
+
+			// Get all distinct location IDs that have action items
+			List<Long> locationIds = medicineActionItemsRepository.findDistinctLocationIds();
+
+			logger.info("Updating statistics for {} locations", locationIds.size());
+
+			for (Long locationId : locationIds) {
+				// Count different types of action items for this location
+				Long outOfStockCount = medicineActionItemsRepository.countByLocationIdAndActionType(locationId, "Out of Stock");
+				Long expiredCount = medicineActionItemsRepository.countByLocationIdAndActionType(locationId, "Expired");
+				Long criticallyLowCount = medicineActionItemsRepository.countByLocationIdAndActionType(locationId, "Critically Low");
+				Long nearExpiryCount = medicineActionItemsRepository.countByLocationIdAndActionType(locationId, "Near Expiry");
+
+				// Find existing location statistics or create new one
+				LocationStatistics locationStats = locationStatisticsRepository
+						.findByLocationIdAndIsActiveTrue(locationId)
+						.orElse(null);
+
+				if (locationStats == null) {
+					// Create new location statistics record
+					locationStats = new LocationStatistics();
+					Location location = new Location();
+					location.setId(locationId);
+					locationStats.setLocation(location);
+					locationStats.setIsActive(true);
+					locationStats.setCreatedAt(currentDate);
+				}
+
+				// Update the statistics
+				locationStats.setStockStatusCount(outOfStockCount.intValue()); // Only Out of Stock count
+				locationStats.setExpiredCount(expiredCount.intValue());
+				locationStats.setNearExpiryCount(nearExpiryCount.intValue());
+				locationStats.setLastUpdated(currentDate);
+				locationStats.setUpdatedAt(currentDate);
+
+				// Save the updated statistics
+				locationStatisticsRepository.save(locationStats);
+
+				logger.debug("Updated statistics for location {}: Stock Issues: {}, Expired: {}, Near Expiry: {}",
+						locationId, locationStats.getStockStatusCount(), locationStats.getExpiredCount(),
+						locationStats.getNearExpiryCount());
+			}
+
+			logger.info("Location statistics updated successfully for {} locations", locationIds.size());
+
+		} catch (Exception e) {
+			logger.error("Error updating location statistics: ", e);
+			throw e;
 		}
 	}
 }

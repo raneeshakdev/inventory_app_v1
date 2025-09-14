@@ -74,4 +74,19 @@ public interface MedicinePurchaseBatchRepository extends JpaRepository<MedicineP
 		@Param("medicineId") Long medicineId,
 		@Param("locationId") Long locationId,
 		@Param("currentDate") LocalDateTime currentDate);
+
+	@Query("""
+			SELECT b FROM MedicinePurchaseBatch b
+			WHERE b.medicine.id = :medicineId
+			AND b.location.id = :locationId
+			AND b.expiryDate BETWEEN :startDate AND :endDate
+			AND b.currentQuantity > 0
+			AND b.isActive = true
+			AND b.isDeleted = false
+			""")
+	List<MedicinePurchaseBatch> findNearExpiryBatchesByMedicineAndLocation(
+		@Param("medicineId") Long medicineId,
+		@Param("locationId") Long locationId,
+		@Param("startDate") LocalDateTime startDate,
+		@Param("endDate") LocalDateTime endDate);
 }
