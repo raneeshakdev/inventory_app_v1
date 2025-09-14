@@ -7,6 +7,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface LocationDonationStatsRepository extends JpaRepository<LocationDonationStats, Long> {
@@ -79,4 +80,8 @@ public interface LocationDonationStatsRepository extends JpaRepository<LocationD
         ORDER BY lds.year DESC, lds.month DESC
         """)
     List<Object[]> findAllAvailableMonthsYears();
+
+    // Add method to find specific entry by location, year, month, and week
+    Optional<LocationDonationStats> findByLocationIdAndYearAndMonthAndWeek(
+        Long locationId, Integer year, Integer month, Integer week);
 }

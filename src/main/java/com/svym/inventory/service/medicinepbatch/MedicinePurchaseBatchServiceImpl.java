@@ -1,7 +1,9 @@
 package com.svym.inventory.service.medicinepbatch;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.temporal.WeekFields;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -12,13 +14,15 @@ import org.springframework.transaction.annotation.Transactional;
 import com.svym.inventory.service.dto.LocationMedicineStatusDTO;
 import com.svym.inventory.service.dto.MedicinePurchaseBatchDTO;
 import com.svym.inventory.service.dto.MedicinePurchaseBatchPartialUpdateDTO;
-import com.svym.inventory.service.entity.MedicinePurchaseBatch;
+import com.svym.inventory.service.entity.LocationDonationStats;
 import com.svym.inventory.service.entity.MedicineLocationStock;
 import com.svym.inventory.service.entity.MedicineLocationStockId;
+import com.svym.inventory.service.entity.MedicinePurchaseBatch;
 import com.svym.inventory.service.location.LocationRepository;
 import com.svym.inventory.service.purchasetype.PurchaseTypeRepository;
-import com.svym.inventory.service.repository.MedicineRepository;
+import com.svym.inventory.service.repository.LocationDonationStatsRepository;
 import com.svym.inventory.service.repository.MedicineLocationStockRepository;
+import com.svym.inventory.service.repository.MedicineRepository;
 import com.svym.inventory.service.security.UserUtils;
 
 import jakarta.persistence.EntityNotFoundException;
@@ -33,6 +37,7 @@ public class MedicinePurchaseBatchServiceImpl implements MedicinePurchaseBatchSe
     private final PurchaseTypeRepository purchaseTypeRepository; // Assuming you have a service to handle PurchaseType entity
     private final LocationRepository locationRepository;
     private final MedicineLocationStockRepository medicineLocationStockRepository;
+    private final LocationDonationStatsRepository locationDonationStatsRepository;
 
     @Override
     @Transactional
@@ -44,7 +49,45 @@ public class MedicinePurchaseBatchServiceImpl implements MedicinePurchaseBatchSe
         // Update MedicineLocationStock
         updateMedicineLocationStock(dto.getMedicineId(), dto.getLocationId(), dto.getInitialQuantity());
 
+        // Check if purchase type is Donation and update location donation stats
+        if (isDonationPurchaseType(dto.getPurchaseTypeId())) {
+            updateLocationDonationStats(dto.getLocationId(), BigDecimal.valueOf(dto.getTotalPrice()));
+        }
+
         return mapToDTO(savedEntity);
+    }
+
+    private boolean isDonationPurchaseType(Long purchaseTypeId) {
+        return purchaseTypeRepository.findById(purchaseTypeId)
+            .map(purchaseType -> "Donation".equalsIgnoreCase(purchaseType.getTypeName()))
+            .orElse(false);
+    }
+
+    private void updateLocationDonationStats(Long locationId, BigDecimal totalPrice) {
+        LocalDate now = LocalDate.now();
+        int year = now.getYear();
+        int month = now.getMonthValue();
+        int week = now.get(WeekFields.ISO.weekOfYear());
+
+        // Check if there's an existing entry for location_id, year, month and week
+        Optional<LocationDonationStats> existingStats = locationDonationStatsRepository
+            .findByLocationIdAndYearAndMonthAndWeek(locationId, year, month, week);
+
+        if (existingStats.isPresent()) {
+            // Update existing entry by adding the new donation amount
+            LocationDonationStats stats = existingStats.get();
+            stats.setTotalDonation(stats.getTotalDonation().add(totalPrice));
+            locationDonationStatsRepository.save(stats);
+        } else {
+            // Create new entry
+            LocationDonationStats newStats = new LocationDonationStats();
+            newStats.setLocationId(locationId);
+            newStats.setYear(year);
+            newStats.setMonth(month);
+            newStats.setWeek(week);
+            newStats.setTotalDonation(totalPrice);
+            locationDonationStatsRepository.save(newStats);
+        }
     }
 
     private void updateMedicineLocationStock(Long medicineId, Long locationId, Integer initialQuantity) {
