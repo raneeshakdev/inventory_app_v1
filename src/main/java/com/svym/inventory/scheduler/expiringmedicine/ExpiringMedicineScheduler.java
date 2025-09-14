@@ -164,7 +164,7 @@ public class ExpiringMedicineScheduler {
 			Integer stockThreshold = medicine.getStockThreshold();
 			Short numberOfBatches = locationStock.getNumberOfBatches();
 
-			if (totalMedicines == 0 && numberOfBatches > 1) {
+			if (totalMedicines == 0 && numberOfBatches > 0) {
 				// Out of stock - only when there are multiple batches
 				locationStock.setIsOutOfStock(true);
 				createActionItem(medicine, locationStock.getLocation(), "Out of Stock",
