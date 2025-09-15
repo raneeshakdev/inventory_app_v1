@@ -89,4 +89,17 @@ public interface MedicinePurchaseBatchRepository extends JpaRepository<MedicineP
 		@Param("locationId") Long locationId,
 		@Param("startDate") LocalDateTime startDate,
 		@Param("endDate") LocalDateTime endDate);
+
+	@Query("""
+			SELECT
+				b.medicine.type.id,
+				COUNT(CASE WHEN b.purchaseType.typeName = 'Purchase' THEN 1 END),
+				COUNT(CASE WHEN b.purchaseType.typeName = 'Donation' THEN 1 END)
+			FROM MedicinePurchaseBatch b
+			WHERE DATE(b.createdAt) = :summaryDate
+			AND b.isActive = true
+			AND b.isDeleted = false
+			GROUP BY b.medicine.type.id
+			""")
+	List<Object[]> getDailySummaryByMedicineType(@Param("summaryDate") LocalDate summaryDate);
 }
