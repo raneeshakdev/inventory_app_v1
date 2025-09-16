@@ -92,14 +92,15 @@ public interface MedicinePurchaseBatchRepository extends JpaRepository<MedicineP
 
 	@Query("""
 			SELECT
-				b.medicine.type.id,
+				b.purchaseType.id,
 				COUNT(CASE WHEN b.purchaseType.typeName = 'Purchase' THEN 1 END),
-				COUNT(CASE WHEN b.purchaseType.typeName = 'Donation' THEN 1 END)
+				COUNT(CASE WHEN b.purchaseType.typeName = 'Donation' THEN 1 END),
+				SUM(COALESCE(b.totalPrice, 0))
 			FROM MedicinePurchaseBatch b
 			WHERE DATE(b.createdAt) = :summaryDate
 			AND b.isActive = true
 			AND b.isDeleted = false
-			GROUP BY b.medicine.type.id
+			GROUP BY b.purchaseType.id
 			""")
-	List<Object[]> getDailySummaryByMedicineType(@Param("summaryDate") LocalDate summaryDate);
+	List<Object[]> getDailySummaryByPurchaseType(@Param("summaryDate") LocalDate summaryDate);
 }

@@ -39,4 +39,24 @@ public interface LocationAnalyticsRepository extends CrudRepository<LocationAnal
     BigDecimal findMonthlyTotalByLocationAndMonth(@Param("locationId") Long locationId,
                                                   @Param("monthName") String monthName,
                                                   @Param("year") Integer year);
+
+    @Query("SELECT la FROM LocationAnalytics la " +
+           "WHERE la.locationId = :locationId " +
+           "AND la.yearNumber = :year " +
+           "AND la.weekNumber = :week " +
+           "AND la.monthName = :monthName")
+    LocationAnalytics findByLocationAndPeriod(@Param("locationId") Long locationId,
+                                            @Param("year") Integer year,
+                                            @Param("week") Integer week,
+                                            @Param("monthName") String monthName);
+
+    @Query("SELECT " +
+           "mpb.location.id, " +
+           "SUM(mpb.totalPrice) " +
+           "FROM MedicinePurchaseBatch mpb " +
+           "WHERE DATE(mpb.createdAt) = :date " +
+           "AND mpb.isActive = true " +
+           "AND mpb.isDeleted = false " +
+           "GROUP BY mpb.location.id")
+    List<Object[]> getDailyPurchaseByLocation(@Param("date") java.time.LocalDate date);
 }

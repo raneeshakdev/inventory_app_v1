@@ -88,7 +88,7 @@ public class WebSecurityConfig { // extends WebSecurityConfigurerAdapter {
 				.exceptionHandling(exception -> exception.authenticationEntryPoint(unauthorizedHandler))
 				.sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
 				.authorizeHttpRequests(
-						auth -> auth.requestMatchers("/api/test/run-expiry-check").permitAll()
+						auth -> auth.requestMatchers("/api/test/**").permitAll()
 								.requestMatchers("/api/auth/**").permitAll()
 								.requestMatchers("/api/v1/**")
 								.hasAnyAuthority("ROLE_VIEWER", "ROLE_LOCATION_ADMIN", "ROLE_ADMIN",
