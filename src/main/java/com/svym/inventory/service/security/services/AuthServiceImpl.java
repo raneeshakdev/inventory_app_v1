@@ -15,6 +15,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import com.svym.inventory.service.dto.UserDTO;
+import com.svym.inventory.service.dto.PrivilegeResponseDTO;
+import com.svym.inventory.service.dto.RoleWithPrivilegesDTO;
 import com.svym.inventory.service.entity.ERole;
 import com.svym.inventory.service.entity.Role;
 import com.svym.inventory.service.entity.User;
@@ -51,7 +53,6 @@ public class AuthServiceImpl {
 	private final JwtUtils jwtUtils;
 
 	public ResponseEntity<?> registerUser(@Valid SignupRequest signUpRequest) {
-		// Create new user's account
 
 		User user = renderUserToEntity(signUpRequest);
 

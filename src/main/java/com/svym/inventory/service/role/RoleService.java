@@ -156,23 +156,20 @@ public class RoleService {
     }
 
     /**
-     * Get role with its privileges
+     * Get role with privileges by ID
      */
     @Transactional(readOnly = true)
     public RoleWithPrivilegesDTO getRoleWithPrivileges(Long roleId) {
-        logger.info("Fetching role with privileges for role ID: {}", roleId);
-
         Role role = roleRepository.findById(roleId)
                 .orElseThrow(() -> new RuntimeException("Role not found with ID: " + roleId));
-
-        List<PrivilegeResponseDTO> privileges = getPrivilegesForRole(roleId);
-
-        return new RoleWithPrivilegesDTO(
-                role.getId(),
-                role.getName(),
-                role.getDisplayName(),
-                privileges
-        );
+        List<RolePrivilege> rolePrivileges = rolePrivilegeRepository.findByRoleId(roleId);
+        List<PrivilegeResponseDTO> privilegeDTOs = rolePrivileges.stream()
+                .map(rp -> {
+                    var privilege = rp.getPrivilege();
+                    return new PrivilegeResponseDTO(privilege.getId(), privilege.getPrivilegeName(), privilege.getDescription());
+                })
+                .collect(Collectors.toList());
+        return new RoleWithPrivilegesDTO(role.getId(), role.getName(), role.getDisplayName(), privilegeDTOs);
     }
 
     /**
