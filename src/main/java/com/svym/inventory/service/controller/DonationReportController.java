@@ -67,6 +67,19 @@ public class DonationReportController {
     }
 
     /**
+     * Get donation report for specific location, month and year
+     */
+    @GetMapping("/location/{locationId}/{month}/{year}")
+    public ResponseEntity<List<ExpenseReportDto>> getDonationReportByLocationMonthYear(
+            @PathVariable Long locationId,
+            @PathVariable int month,
+            @PathVariable int year) {
+
+        List<ExpenseReportDto> donationData = donationReportService.getDonationReportByLocationAndMonth(locationId, month, year);
+        return ResponseEntity.ok(donationData);
+    }
+
+    /**
      * Get all available months/years that have donation data
      * Useful for frontend to know what periods have data available
      */
@@ -74,5 +87,17 @@ public class DonationReportController {
     public ResponseEntity<List<Object[]>> getAvailableMonthsYears() {
         List<Object[]> availablePeriods = donationReportService.getAvailableMonthsYears();
         return ResponseEntity.ok(availablePeriods);
+    }
+
+    /**
+     * Get donation report for specific month and year for all locations
+     */
+    @GetMapping("/{month}/{year}")
+    public ResponseEntity<List<ExpenseReportDto>> getDonationReportByMonthYear(
+            @PathVariable int month,
+            @PathVariable int year) {
+
+        List<ExpenseReportDto> donationData = donationReportService.getDonationReportForAllLocationsByMonth(month, year);
+        return ResponseEntity.ok(donationData);
     }
 }
