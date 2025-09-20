@@ -48,9 +48,9 @@ public class UsersController {
 		return authService.updateUser(userUpdateRequest);
 	}
 
-	@GetMapping("/getRoleWithPrivileges/{roleId}")
-	public ResponseEntity<RoleWithPrivilegesDTO> getRoleWithPrivileges(@PathVariable Long roleId) {
-		RoleWithPrivilegesDTO dto = roleService.getRoleWithPrivileges(roleId);
+	@GetMapping("/getRoleWithPrivileges/{userId}")
+	public ResponseEntity<RoleWithPrivilegesDTO> getRoleWithPrivileges(@PathVariable Long userId) {
+		RoleWithPrivilegesDTO dto = roleService.getRoleWithPrivilegesByUserId(userId);
 		return ResponseEntity.ok(dto);
 	}
 }

@@ -3,8 +3,10 @@ package com.svym.inventory.service.role;
 import com.svym.inventory.service.dto.*;
 import com.svym.inventory.service.entity.Role;
 import com.svym.inventory.service.entity.RolePrivilege;
+import com.svym.inventory.service.entity.User;
 import com.svym.inventory.service.repository.RoleRepository;
 import com.svym.inventory.service.repository.RolePrivilegeRepository;
+import com.svym.inventory.service.repository.UserRepository;
 import com.svym.inventory.service.privilege.PrivilegeRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -13,6 +15,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
@@ -29,6 +32,9 @@ public class RoleService {
 
     @Autowired
     private PrivilegeRepository privilegeRepository;
+
+    @Autowired
+    private UserRepository userRepository;
 
     /**
      * Get all roles
@@ -192,6 +198,39 @@ public class RoleService {
                     );
                 })
                 .collect(Collectors.toList());
+    }
+
+    /**
+     * Get role with privileges by user ID
+     */
+    @Transactional(readOnly = true)
+    public RoleWithPrivilegesDTO getRoleWithPrivilegesByUserId(Long userId) {
+        logger.info("Fetching role with privileges for user ID: {}", userId);
+
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found with ID: " + userId));
+
+        Set<Role> userRoles = user.getRoles();
+        if (userRoles.isEmpty()) {
+            throw new RuntimeException("User has no roles assigned");
+        }
+
+        // For simplicity, we'll return the first role if multiple roles exist
+        // In a more complex scenario, you might want to handle multiple roles differently
+        Role primaryRole = userRoles.iterator().next();
+
+        List<RolePrivilege> rolePrivileges = rolePrivilegeRepository.findByRoleId(primaryRole.getId().longValue());
+        List<PrivilegeResponseDTO> privilegeDTOs = rolePrivileges.stream()
+                .map(rp -> {
+                    var privilege = rp.getPrivilege();
+                    return new PrivilegeResponseDTO(privilege.getId(), privilege.getPrivilegeName(), privilege.getDescription());
+                })
+                .collect(Collectors.toList());
+
+        logger.info("Found role '{}' with {} privileges for user ID: {}",
+                   primaryRole.getName(), privilegeDTOs.size(), userId);
+
+        return new RoleWithPrivilegesDTO(primaryRole.getId(), primaryRole.getName(), primaryRole.getDisplayName(), privilegeDTOs);
     }
 
     /**
