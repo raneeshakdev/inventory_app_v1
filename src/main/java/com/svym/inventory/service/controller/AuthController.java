@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.svym.inventory.service.payload.request.ChangePasswordRequest;
 import com.svym.inventory.service.payload.request.LoginRequest;
 import com.svym.inventory.service.payload.request.SignupRequest;
+import com.svym.inventory.service.payload.request.UserAddRequest;
 import com.svym.inventory.service.payload.response.MessageResponse;
 import com.svym.inventory.service.repository.UserRepository;
 import com.svym.inventory.service.security.services.AuthServiceImpl;
@@ -49,5 +50,17 @@ public class AuthController {
 		String username = authentication.getName();
 		authService.changePassword(username, request);
 		return ResponseEntity.ok("Password changed successfully");
+	}
+
+	@PostMapping("/add")
+	public ResponseEntity<?> addUser(@RequestBody UserAddRequest userAddRequest) {
+		if (Boolean.TRUE.equals(userRepository.existsByEmail(userAddRequest.getEmail()))) {
+			return ResponseEntity.badRequest().body(new MessageResponse("Error: Email is already in use!"));
+		}
+		if (Boolean.TRUE.equals(userRepository.existsByFirstNameAndLastName(userAddRequest.getFirstName(), userAddRequest.getLastName()))) {
+			return ResponseEntity.badRequest().body(new MessageResponse("Error: User already exists!"));
+		}
+		// Delegate password generation/encryption to the service
+		return authService.addUser(userAddRequest);
 	}
 }

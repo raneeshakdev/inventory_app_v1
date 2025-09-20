@@ -15,8 +15,6 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import com.svym.inventory.service.dto.UserDTO;
-import com.svym.inventory.service.dto.PrivilegeResponseDTO;
-import com.svym.inventory.service.dto.RoleWithPrivilegesDTO;
 import com.svym.inventory.service.entity.ERole;
 import com.svym.inventory.service.entity.Role;
 import com.svym.inventory.service.entity.User;
@@ -120,8 +118,8 @@ public class AuthServiceImpl {
 		User user = userRepository.findByEmail(username)
 				.orElseThrow(() -> new EntityNotFoundException("User not found"));
 
-		if (!encoder.matches(request.getOldPassword(), user.getPasswordHash())) {
-			throw new IllegalArgumentException("Old password is incorrect");
+		if (!encoder.matches(request.getCurrentPassword(), user.getPasswordHash())) {
+			throw new IllegalArgumentException("Current password is incorrect");
 		}
 
 		user.setPasswordHash(encoder.encode(request.getNewPassword()));
@@ -146,6 +144,18 @@ public class AuthServiceImpl {
 		return roleRepository.findAll();
 	}
 
+	public static class AddUserResponse {
+	    private String message;
+	    private String temporaryPassword;
+
+	    public AddUserResponse(String message, String temporaryPassword) {
+	        this.message = message;
+	        this.temporaryPassword = temporaryPassword;
+	    }
+	    public String getMessage() { return message; }
+	    public String getTemporaryPassword() { return temporaryPassword; }
+	}
+
 	public ResponseEntity<?> addUser(UserAddRequest userAddRequest) {
 		if (Boolean.TRUE.equals(userRepository.existsByEmail(userAddRequest.getEmail()))) {
 			return ResponseEntity.badRequest().body(new MessageResponse("Error: Email is already in use!"));
@@ -155,27 +165,27 @@ public class AuthServiceImpl {
 			return ResponseEntity.badRequest().body(new MessageResponse("Error: User already exists!"));
 		}
 		String tempPassword = PasswordGenerator.generateTempPassword();
-		userAddRequest.setPassword(encoder.encode(tempPassword));
+        userAddRequest.setPassword(tempPassword);
+        User user = renderUserToEntity(userAddRequest);
 
-		User user = renderUserToEntity(userAddRequest);
+        Set<Role> roles = new HashSet<>();
+        if (userAddRequest.getRole() != null && !userAddRequest.getRole().isEmpty()) {
+            for (String roleName : userAddRequest.getRole()) {
+                Role role = roleRepository.findByName(ERole.valueOf(roleName))
+                    .orElseThrow(() -> new RuntimeException("Error: Role is not found."));
+                roles.add(role);
+            }
+        } else {
+            Role userRole = roleRepository.findByName(ERole.ROLE_VIEWER)
+                .orElseThrow(() -> new RuntimeException("Error: Role is not found."));
+            roles.add(userRole);
+        }
+        user.setRoles(roles);
 
-		if (userAddRequest.getRoles() != null && !userAddRequest.getRoles().isEmpty()) {
-			user.setRoles(userAddRequest.getRoles());
-		} else {
-			Role userRole = roleRepository.findByName(ERole.ROLE_VIEWER)
-					.orElseThrow(() -> new RuntimeException("Error: Role is not found."));
-			Set<Role> roles = new HashSet<>();
-			roles.add(userRole);
-			user.setRoles(roles);
-		}
-		user.setIsTemporaryPwd(true);
-
+        user.setIsTemporaryPwd(true);
 		userRepository.save(user);
-
-		// Optionally send email with the temporary password & this will implement later
 		log.info("Temporary Password: {}", tempPassword);
-		return ResponseEntity
-				.ok(new MessageResponse("User added successfully! Temporary password is: " + tempPassword));
+		return ResponseEntity.ok(new AddUserResponse("User added successfully!", tempPassword));
 	}
 
 	private User renderUserToEntity(UserAddRequest signUpRequest) {
