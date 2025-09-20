@@ -38,6 +38,18 @@ public interface LocationMedicineAnalyticsRepository extends JpaRepository<Locat
                                       @Param("year") Integer year);
 
     @Query("""
+        SELECT mt.typeName as name, SUM(lma.totalSpend) as value
+        FROM LocationMedicineAnalytics lma
+        JOIN MedicineType mt ON lma.medicineTypeId = mt.id
+        WHERE lma.locationId = :locationId
+        AND lma.year = :year
+        GROUP BY mt.id, mt.typeName
+        ORDER BY SUM(lma.totalSpend) DESC
+        """)
+    List<Object[]> findExpensesByLocationAndYear(@Param("locationId") Long locationId,
+                                                @Param("year") Integer year);
+
+    @Query("""
         SELECT lma FROM LocationMedicineAnalytics lma
         WHERE lma.locationId = :locationId
         AND lma.medicineTypeId = :medicineTypeId

@@ -58,6 +58,13 @@ public class ExpenseReportService {
         return mapToExpenseReportDto(results);
     }
 
+    public List<ExpenseReportDto> getExpenseReportByLocationAndYear(Long locationId, int year) {
+        List<Object[]> results = locationMedicineAnalyticsRepository
+            .findExpensesByLocationAndYear(locationId, year);
+
+        return mapToExpenseReportDto(results);
+    }
+
     private List<ExpenseReportDto> mapToExpenseReportDto(List<Object[]> results) {
         return IntStream.range(0, results.size())
             .mapToObj(i -> {

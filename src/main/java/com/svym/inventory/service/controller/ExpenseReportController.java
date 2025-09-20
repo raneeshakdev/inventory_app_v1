@@ -65,4 +65,16 @@ public class ExpenseReportController {
         List<ExpenseReportDto> expenseData = expenseReportService.getExpenseReportByLocation(locationId);
         return ResponseEntity.ok(expenseData);
     }
+
+    /**
+     * Get expense report for specific location and year
+     */
+    @GetMapping("/location/{locationId}/{year}")
+    public ResponseEntity<List<ExpenseReportDto>> getExpenseReportByLocationIdAndYear(
+            @PathVariable Long locationId,
+            @PathVariable int year) {
+
+        List<ExpenseReportDto> expenseData = expenseReportService.getExpenseReportByLocationAndYear(locationId, year);
+        return ResponseEntity.ok(expenseData);
+    }
 }

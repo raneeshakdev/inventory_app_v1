@@ -17,7 +17,13 @@ public class LocationAnalyticsController {
 
     @GetMapping("/monthly/{locationId}")
     public ResponseEntity<List<MonthlyAnalyticsDto>> getMonthlyAnalytics(@PathVariable Long locationId) {
-        List<MonthlyAnalyticsDto> monthlyData = locationAnalyticsService.getMonthlyAnalytics(locationId);
+        List<MonthlyAnalyticsDto> monthlyData = locationAnalyticsService.getMonthlyAnalytics(locationId, null);
+        return ResponseEntity.ok(monthlyData);
+    }
+
+    @GetMapping("/monthly/{locationId}/{year}")
+    public ResponseEntity<List<MonthlyAnalyticsDto>> getMonthlyAnalyticsForYear(@PathVariable Long locationId, @PathVariable Integer year) {
+        List<MonthlyAnalyticsDto> monthlyData = locationAnalyticsService.getMonthlyAnalytics(locationId, year);
         return ResponseEntity.ok(monthlyData);
     }
 }

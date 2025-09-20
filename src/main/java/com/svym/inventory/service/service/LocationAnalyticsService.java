@@ -16,11 +16,13 @@ public class LocationAnalyticsService {
 
     private final LocationAnalyticsRepository locationAnalyticsRepository;
 
-    public List<MonthlyAnalyticsDto> getMonthlyAnalytics(Long locationId) {
-        int currentYear = LocalDate.now().getYear();
+    public List<MonthlyAnalyticsDto> getMonthlyAnalytics(Long locationId, Integer year) {
+        // If year is not provided, use current year
+        Integer targetYear = (year != null) ? year : LocalDate.now().getYear();
 
-        // Get data from database
-        List<Object[]> monthlyData = locationAnalyticsRepository.findMonthlyTotalsByLocationAndYear(locationId, currentYear);
+        // Get data from database using the year
+        List<Object[]> monthlyData = locationAnalyticsRepository.findMonthlyTotalsByLocationAndYear(
+                locationId, targetYear);
 
         // Convert to map for easier lookup
         Map<String, BigDecimal> dataMap = new HashMap<>();
@@ -33,7 +35,7 @@ public class LocationAnalyticsService {
         // Create response for all 12 months
         List<MonthlyAnalyticsDto> result = new ArrayList<>();
         String[] months = {"Jan", "Feb", "Mar", "Apr", "May", "Jun",
-                          "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"};
+                "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"};
 
         BigDecimal previousValue = null;
 
@@ -44,8 +46,8 @@ public class LocationAnalyticsService {
             // Calculate percentage change for May (as shown in your example)
             if ("May".equals(month) && previousValue != null && previousValue.compareTo(BigDecimal.ZERO) > 0) {
                 BigDecimal changePercentage = value.subtract(previousValue)
-                    .divide(previousValue, 4, RoundingMode.HALF_UP)
-                    .multiply(BigDecimal.valueOf(100));
+                        .divide(previousValue, 4, RoundingMode.HALF_UP)
+                        .multiply(BigDecimal.valueOf(100));
 
                 if (changePercentage.compareTo(BigDecimal.ZERO) > 0) {
                     dto.setChange("+" + changePercentage.setScale(0, RoundingMode.HALF_UP) + "%");
