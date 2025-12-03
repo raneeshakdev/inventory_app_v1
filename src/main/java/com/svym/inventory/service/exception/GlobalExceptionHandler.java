@@ -4,6 +4,9 @@ import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
 
+import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -14,9 +17,14 @@ import jakarta.persistence.EntityNotFoundException;
 
 //@ControllerAdvice
 @RestControllerAdvice
+
 public class GlobalExceptionHandler {
+
+    private static final Logger log = LoggerFactory.getLogger(GlobalExceptionHandler.class);
+
     @ExceptionHandler(DataNotFoundException.class)
     public ResponseEntity<ErrorResponseDto> handleCustomRuntimeException(DataNotFoundException ex) {
+        log.error("Data not found: {}", ex.getMessage(), ex);
         ErrorResponseDto error = new ErrorResponseDto(
                 LocalDateTime.now(),
                 ex.getMessage(),
@@ -29,6 +37,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(EntityNotFoundException.class)
     public ResponseEntity<ErrorResponseDto> handleEntityNotFoundException(EntityNotFoundException ex) {
+        log.error("Entity not found: {}", ex.getMessage(), ex);
         ErrorResponseDto error = new ErrorResponseDto(
                 LocalDateTime.now(),
                 ex.getMessage(),
@@ -46,6 +55,7 @@ public class GlobalExceptionHandler {
         );
 
         String errorMessage = "Validation failed: " + errors;
+        log.warn("Validation error: {}", errorMessage);
         ErrorResponseDto error = new ErrorResponseDto(
                 LocalDateTime.now(),
                 errorMessage,
@@ -57,6 +67,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(DuplicatePatientIdException.class)
     public ResponseEntity<ErrorResponseDto> handleDuplicatePatientIdException(DuplicatePatientIdException ex) {
+        log.error("Duplicate patient ID: {}", ex.getMessage(), ex);
         ErrorResponseDto error = new ErrorResponseDto(
                 LocalDateTime.now(),
                 ex.getMessage(),
@@ -68,6 +79,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(DuplicatePhoneNumberException.class)
     public ResponseEntity<ErrorResponseDto> handleDuplicatePhoneNumberException(DuplicatePhoneNumberException ex) {
+        log.error("Duplicate phone number: {}", ex.getMessage(), ex);
         ErrorResponseDto error = new ErrorResponseDto(
                 LocalDateTime.now(),
                 ex.getMessage(),
@@ -79,12 +91,14 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponseDto> handleGenericException(Exception ex) {
+        log.error("Unexpected error occurred: {}", ex.getMessage(), ex);
         ErrorResponseDto error = new ErrorResponseDto(
                 LocalDateTime.now(),
-                "An unexpected error occurred",
+                "An unexpected error occurred: " + ex.getMessage(),
                 "INTERNAL_SERVER_ERROR",
                 HttpStatus.INTERNAL_SERVER_ERROR.value()
         );
         return new ResponseEntity<>(error, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 }
+
