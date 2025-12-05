@@ -240,4 +240,29 @@ public class AuthServiceImpl {
 		userRepository.save(user);
 		return ResponseEntity.ok(new MessageResponse("User updated successfully!"));
 	}
+
+	public static class ResetPasswordResponse {
+		private String message;
+		private String newPassword;
+
+		public ResetPasswordResponse(String message, String newPassword) {
+			this.message = message;
+			this.newPassword = newPassword;
+		}
+		public String getMessage() { return message; }
+		public String getNewPassword() { return newPassword; }
+	}
+
+	public ResponseEntity<?> resetPassword(Long userId) {
+		User user = userRepository.findById(userId)
+				.orElseThrow(() -> new EntityNotFoundException("User not found with ID: " + userId));
+
+		String newPassword = PasswordGenerator.generateTempPassword();
+		user.setPasswordHash(encoder.encode(newPassword));
+		user.setIsTemporaryPwd(true);
+		userRepository.save(user);
+
+		log.info("Password reset for user ID: {} - New Password: {}", userId, newPassword);
+		return ResponseEntity.ok(new ResetPasswordResponse("Password reset successfully!", newPassword));
+	}
 }

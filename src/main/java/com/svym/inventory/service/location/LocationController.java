@@ -44,6 +44,11 @@ public class LocationController {
         return ResponseEntity.ok(service.getAll());
     }
 
+    @GetMapping("/user/{userId}")
+    public ResponseEntity<List<LocationDTO>> getLocationsByUserId(@PathVariable Long userId) {
+        return ResponseEntity.ok(service.getLocationsByUserId(userId));
+    }
+
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@PathVariable Long id) {
         service.delete(id);
