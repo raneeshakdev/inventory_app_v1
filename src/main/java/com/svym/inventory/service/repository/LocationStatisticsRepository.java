@@ -21,4 +21,7 @@ public interface LocationStatisticsRepository extends CrudRepository<LocationSta
 
     @Query("SELECT ls FROM LocationStatistics ls WHERE ls.location.id = :locationId AND ls.isActive = true")
     Optional<LocationStatistics> findActiveByLocationId(@Param("locationId") Long locationId);
+
+    @Query("SELECT ls FROM LocationStatistics ls JOIN ls.location l WHERE l.id IN :locationIds AND l.isActive = true AND ls.isActive = true ORDER BY l.name")
+    List<LocationStatistics> findAllActiveLocationStatisticsByLocationIds(@Param("locationIds") List<Long> locationIds);
 }

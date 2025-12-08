@@ -3,7 +3,9 @@ package com.svym.inventory.service.service;
 import com.svym.inventory.service.dto.LocationStatisticsDto;
 import com.svym.inventory.service.entity.Location;
 import com.svym.inventory.service.entity.LocationStatistics;
+import com.svym.inventory.service.entity.UserLocation;
 import com.svym.inventory.service.repository.LocationStatisticsRepository;
+import com.svym.inventory.service.location.UserLocationRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -18,6 +20,7 @@ import java.util.stream.Collectors;
 public class LocationStatisticsService {
 
     private final LocationStatisticsRepository locationStatisticsRepository;
+    private final UserLocationRepository userLocationRepository;
 
     public List<LocationStatisticsDto> getAllLocationStatistics() {
         List<LocationStatistics> statistics = locationStatisticsRepository.findAllActiveLocationStatistics();
@@ -26,8 +29,23 @@ public class LocationStatisticsService {
                 .collect(Collectors.toList());
     }
 
-    public List<LocationStatisticsDto> getAllLocationsWithStatistics() {
-        List<LocationStatistics> statistics = locationStatisticsRepository.findAllActiveLocationStatistics();
+    public List<LocationStatisticsDto> getAllLocationsWithStatistics(Long userId) {
+        // Check if user has location mappings
+        List<UserLocation> userLocations = userLocationRepository.findActiveLocationsByUserId(userId);
+
+        List<LocationStatistics> statistics;
+
+        if (userLocations.isEmpty()) {
+            // No location mappings, return complete list
+            statistics = locationStatisticsRepository.findAllActiveLocationStatistics();
+        } else {
+            // User has location mappings, filter by allowed locations
+            List<Long> allowedLocationIds = userLocations.stream()
+                    .map(UserLocation::getLocationId)
+                    .collect(Collectors.toList());
+            statistics = locationStatisticsRepository.findAllActiveLocationStatisticsByLocationIds(allowedLocationIds);
+        }
+
         return statistics.stream()
                 .map(this::convertToDto)
                 .collect(Collectors.toList());

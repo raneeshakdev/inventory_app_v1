@@ -30,8 +30,9 @@ public class LocationStatisticsController {
     }
 
     @GetMapping("/locations-with-statistics")
-    public ResponseEntity<List<LocationStatisticsDto>> getAllLocationsWithStatistics() {
-        List<LocationStatisticsDto> locationsWithStats = locationStatisticsService.getAllLocationsWithStatistics();
+    public ResponseEntity<List<LocationStatisticsDto>> getAllLocationsWithStatistics(
+            @RequestHeader(value = "user_id", required = true) Long userId) {
+        List<LocationStatisticsDto> locationsWithStats = locationStatisticsService.getAllLocationsWithStatistics(userId);
         return ResponseEntity.ok(locationsWithStats);
     }
 
